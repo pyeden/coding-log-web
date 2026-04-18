@@ -20,3 +20,10 @@ urls.txt
 
 # mac
 .DS_Store
+
+/cert
+/logs
+/log
+*log
+*pem
+*key
