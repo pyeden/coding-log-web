@@ -1,0 +1,38 @@
+#### <strong>1.5 请比较一下几种常见的 LLM 架构，例如 Encoder-Only, Decoder-Only, 和 Encoder-Decoder，并说明它们各自最擅长的任务类型。</strong>
+
+
+
+* <strong>参考答案：</strong>
+    LLM的架构主要可以分为三类，它们的核心区别在于使用了Transformer的哪些部分以及注意力机制的类型，这直接决定了它们各自擅长的任务。
+
+    #### <strong>1. Encoder-Only 架构 (例如 BERT, RoBERTa)</strong>
+    * <strong>结构：</strong> 由多个Transformer Encoder层堆叠而成。
+    * <strong>核心机制：</strong> <strong>双向自注意力机制</strong>。在处理序列中的任何一个词元时，模型都可以同时关注到它左边和右边的所有词元。这使得模型能够获得非常丰富的上下文表示。
+    * <strong>最擅长的任务类型：自然语言理解 (NLU)</strong>。
+        * <strong>具体任务：</strong>
+            * <strong>分类任务：</strong> 情感分析、文本分类。
+            * <strong>序列标注：</strong> 命名实体识别 (NER)。
+            * <strong>句子关系判断：</strong> 自然语言推断 (NLI)。
+            * <strong>完形填空：</strong> 像BERT的Masked Language Model (MLM) 预训练任务本身。
+        * <strong>原因：</strong> 这些任务的核心是<strong>理解</strong>输入文本的深层含义，而双向上下文对于准确理解至关重要。这类模型的输出通常是固定的标签或类别，而非自由生成的长文本。
+
+    #### <strong>2. Decoder-Only 架构 (例如 GPT系列, Llama, Qwen)</strong>
+    * <strong>结构：</strong> 由多个Transformer Decoder层堆叠而成，但移除了其中的Encoder-Decoder交叉注意力部分。
+    * <strong>核心机制：</strong> <strong>单向（因果）自注意力机制 (Causal Self-Attention)</strong>。在预测第 `t` 个词元时，模型只能关注到位置 `1` 到 `t-1` 的词元，不能看到未来的信息。这种自回归的特性天然适合生成任务。
+    * <strong>最擅长的任务类型：自然语言生成 (NLG)</strong>。
+        * <strong>具体任务：</strong>
+            * <strong>开放式文本生成：</strong> 写文章、故事、诗歌。
+            * <strong>对话系统/聊天机器人：</strong> 如ChatGPT。
+            * <strong>代码生成：</strong> 如Copilot。
+            * <strong>上下文续写 (In-context Learning)。</strong>
+        * <strong>原因：</strong> 语言的生成过程是顺序的、从左到右的，Decoder-Only架构的单向注意力完美地模拟了这一过程。目前绝大多数的通用大语言模型都采用此架构。
+
+    #### <strong>3. Encoder-Decoder 架构 (例如 T5, BART, 原始Transformer)</strong>
+    * <strong>结构：</strong> 包含一个完整的Encoder栈和一个完整的Decoder栈。
+    * <strong>核心机制：</strong> Encoder部分使用<strong>双向注意力</strong>来编码整个输入序列，形成一个全面的上下文表示。Decoder部分在生成输出时，一方面使用<strong>单向注意力</strong>处理已生成的序列，另一方面通过<strong>交叉注意力 (Cross-Attention)</strong>机制来关注Encoder的输出，确保生成内容与输入相关。
+    * <strong>最擅长的任务类型：序列到序列 (Seq2Seq)</strong>。
+        * <strong>具体任务：</strong>
+            * <strong>机器翻译：</strong> 将一种语言（输入序列）翻译成另一种语言（输出序列）。
+            * <strong>文本摘要：</strong> 将一篇长文章（输入序列）概括成几句话（输出序列）。
+            * <strong>问答：</strong> 将问题（输入序列）转换为答案（输出序列）。
+        * <strong>原因：</strong> 这类任务需要首先对源序列有一个完整的、全局的理解（由Encoder完成），然后基于这个理解有条件地生成一个目标序列（由Decoder完成）。
