@@ -103,7 +103,7 @@ function installButtonFix () {
 
 
 // 首页卡片：指针跟随 3D 倾斜（仅 hover: hover + 精细指针 + 非 reduced-motion）
-const TILT_SELECTOR = '.home-wrapper .banner .feature, .theme-vdoing-content .card-box, .theme-vdoing-content .post, .ps-card, .theme-vdoing-content .column-wrapper'
+const TILT_SELECTOR = '.home-wrapper .banner .feature, .theme-container .card-box, .theme-container .post, .theme-container .column-wrapper, .ps-card'
 const TILT_MAX = 6
 
 const tiltAllowed = () =>
