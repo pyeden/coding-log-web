@@ -983,3 +983,19 @@ html body .footer
   html body .theme-container .ps-card.ps-card-featured,
   html body .theme-container .ps-card.ps-card-soon
     background-image: none
+
+// ============================================================
+// 项目页卡片的 3D 动态参数与首页完全一致
+// ============================================================
+
+@media screen
+  html body .theme-container .ps-card
+    --rx: 1.1deg
+
+    &:nth-child(3n + 1)
+      --ry: 1.6deg
+    &:nth-child(3n)
+      --ry: -1.6deg
+
+    &:hover::after
+      opacity: .9
