@@ -520,13 +520,18 @@ html body .footer
     top: var(--nav-h)
     bottom: var(--footer-h)
 
-  // 悬浮按钮组固定在浏览器右侧、上下居中，避免被固定底栏遮挡
+  // 悬浮按钮组固定在浏览器右侧，垂直位置可按需微调（当前中心点 70%）
   html body .buttons
-    top: 50%
+    top: 70%
     bottom: auto
     right: 1.75rem
     transform: translateY(-50%)
     z-index: 31
+
+  // 组件用 v-show 控制显隐（内联 display:none），这里强制常显
+  html body .buttons .go-to-top,
+  html body .buttons .go-to-comment
+    display: block !important
 
   @media (max-width: 719px)
     html body .buttons
