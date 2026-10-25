@@ -520,8 +520,17 @@ html body .footer
     top: var(--nav-h)
     bottom: var(--footer-h)
 
+  // 悬浮按钮组固定在浏览器右侧、上下居中，避免被固定底栏遮挡
   html body .buttons
-    bottom: calc(var(--footer-h) + .8rem)
+    top: 50%
+    bottom: auto
+    right: 1.75rem
+    transform: translateY(-50%)
+    z-index: 31
+
+  @media (max-width: 719px)
+    html body .buttons
+      right: .9rem
 
   html body .home-wrapper .banner
     margin-top: 0
