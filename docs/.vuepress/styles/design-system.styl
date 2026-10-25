@@ -419,12 +419,13 @@ html body .footer
     text-shadow: none
 
   html body .home-wrapper .banner .feature
-    background-color: rgba(11,20,35,.72)
-    border-color: rgba(34,211,238,.18)
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px rgba(0,0,0,.28)
+    // 用 token 跟随浅色/深色/阅读模式，避免写死深色底
+    background-color: var(--site-card)
+    border-color: var(--site-border)
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 18px 40px var(--site-shadow)
     &:hover
-      border-color: rgba(34,211,238,.5)
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 22px 55px rgba(0,0,0,.38), 0 0 45px rgba(34,211,238,.10)
+      border-color: rgba(34,211,238,.42)
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 22px 55px var(--site-shadow), 0 0 45px var(--site-glow)
 
   // 文章标题：渐变下划线，不再用整块底色
   .theme-vdoing-content h2
