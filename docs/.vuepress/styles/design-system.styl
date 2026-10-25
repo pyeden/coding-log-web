@@ -341,3 +341,116 @@ html body .footer
   body
     background: #fff
     color: #111
+
+// ============================================================
+// V2：AI 科技炫酷风（不是方格子蓝图）
+// 以极光渐变、玻璃卡片、霓虹描边和渐变标题为主
+// ============================================================
+
+@media screen
+  body
+    background-color: #04070f
+    background-image: radial-gradient(900px 600px at 10% -10%, rgba(34,211,238,.22), transparent 60%), radial-gradient(800px 560px at 92% 6%, rgba(139,92,246,.20), transparent 60%), radial-gradient(760px 520px at 52% 112%, rgba(244,114,182,.10), transparent 65%)
+    background-attachment: fixed
+    background-repeat: no-repeat
+
+  // 极细点阵，替代方格子
+  body::before
+    background-image: radial-gradient(circle at 1px 1px, rgba(148,163,184,.16) 1px, transparent 0)
+    background-size: 26px 26px
+    background-position: 0 0
+    background-repeat: repeat
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent 92%)
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent 92%)
+
+  // 导航：底部霓虹线 + 品牌渐变字
+  html body .navbar
+    background-image: linear-gradient(90deg, rgba(34,211,238,.08), transparent 42%, rgba(139,92,246,.07))
+    box-shadow: 0 12px 40px rgba(0,0,0,.35), inset 0 -1px 0 rgba(34,211,238,.20)
+    .site-name
+      background-image: linear-gradient(100deg, #f8fafc, #67e8f9 55%, #c4b5fd)
+      -webkit-background-clip: text
+      background-clip: text
+      color: transparent
+      -webkit-text-fill-color: transparent
+
+  // 侧栏当前项：左侧霓虹条
+  html body .sidebar .active > a,
+  html body .sidebar a.active,
+  html body .sidebar .sidebar-link.active
+    background-image: linear-gradient(90deg, rgba(34,211,238,.18), transparent)
+    box-shadow: inset 2px 0 0 #22d3ee
+
+  // 文章面板：顶部高光
+  html body .theme-container .theme-vdoing-wrapper
+    box-shadow: inset 0 1px 0 rgba(34,211,238,.30), 0 18px 48px var(--site-shadow)
+
+  // 卡片：玻璃 + 霓虹描边 + 悬浮光晕
+  html body .theme-container .card-box,
+  html body .theme-container .post
+    border-color: rgba(34,211,238,.16)
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 18px 40px var(--site-shadow)
+
+  html body .theme-container .card-box:hover,
+  html body .theme-container .post:hover
+    border-color: rgba(34,211,238,.48)
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 22px 60px rgba(0,0,0,.42), 0 0 40px rgba(34,211,238,.10)
+
+  // 首页 Hero：渐变标题 + 科技标签
+  html body .home-wrapper .banner .hero::before
+    content: 'AI · ENGINEERING · NOTES'
+    display: inline-block
+    margin-bottom: .9rem
+    padding: .28rem .75rem
+    border: 1px solid rgba(34,211,238,.32)
+    border-radius: 999px
+    background: rgba(34,211,238,.06)
+    color: #67e8f9
+    font-size: .66rem
+    letter-spacing: .18em
+    font-weight: 600
+
+  html body .home-wrapper .banner .hero h1
+    background-image: linear-gradient(110deg, #f8fafc 0%, #67e8f9 38%, #c4b5fd 70%, #f9a8d4 100%)
+    -webkit-background-clip: text
+    background-clip: text
+    color: transparent
+    -webkit-text-fill-color: transparent
+    text-shadow: none
+
+  html body .home-wrapper .banner .feature
+    background-color: rgba(11,20,35,.72)
+    border-color: rgba(34,211,238,.18)
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px rgba(0,0,0,.28)
+    &:hover
+      border-color: rgba(34,211,238,.5)
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 22px 55px rgba(0,0,0,.38), 0 0 45px rgba(34,211,238,.10)
+
+  // 文章标题：渐变下划线，不再用整块底色
+  .theme-vdoing-content h2
+    padding-left: 0
+    padding-bottom: .55rem
+    border-left: 0
+    background-image: none
+    position: relative
+
+  .theme-vdoing-content h2::after
+    content: ''
+    display: block
+    width: 64px
+    height: 3px
+    margin-top: .55rem
+    border-radius: 999px
+    background-image: linear-gradient(90deg, #22d3ee, #8b5cf6 60%, #f472b6)
+
+  .theme-vdoing-content blockquote
+    background-image: linear-gradient(135deg, rgba(34,211,238,.10), rgba(139,92,246,.06))
+
+  .theme-vdoing-content div[class*="language-"]
+    border-color: rgba(34,211,238,.18)
+    box-shadow: inset 0 1px 0 rgba(34,211,238,.12), 0 14px 36px rgba(0,0,0,.28)
+
+  // 项目页：让极光背景透出来
+  html body .theme-container .ps
+    background-color: transparent
+    background-image: none
