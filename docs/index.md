@@ -4,7 +4,7 @@ title: 首页
 bannerBg: "background: radial-gradient(700px circle at 12% 18%, var(--site-glow), transparent 55%), radial-gradient(620px circle at 88% 8%, var(--site-glow-2), transparent 52%), linear-gradient(180deg, var(--site-hero-veil), transparent 88%); color: var(--site-text)"
 # heroImage: /img/web.png
 heroText: 三木 vlog
-tagline: Web前端技术博客，积跬步以至千里，致敬每个爱学习的你。
+tagline: 技术苦行僧，积跬步以至千里，致敬每个爱学习的你。
 # actionText: 立刻进入 →
 # actionLink: /web/
 # bannerBg: auto # auto => 网格纹背景(有bodyBgImg时无背景)，默认 | none => 无 | '大图地址' | background: 自定义背景样式       提示：如发现文本颜色不适应你的背景时可以到palette.styl修改$bannerTextColor变量
