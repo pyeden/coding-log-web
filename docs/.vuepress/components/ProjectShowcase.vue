@@ -66,11 +66,6 @@
         </div>
       </div>
 
-      <footer class="ps-footer">
-        <span>BUILT WITH CURIOSITY</span>
-        <span class="ps-footer-line"></span>
-        <span>FastAPI · VuePress · OpenClaw</span>
-      </footer>
     </div>
   </section>
 </template>
@@ -235,13 +230,6 @@ export default {
 .ps-card:hover .ps-card-foot em { transform: translateX(3px); }
 .ps-muted { color: var(--site-muted) !important; }
 
-.ps-footer {
-  display: flex; align-items: center; gap: 1rem;
-  margin-top: 1.75rem; padding-top: 1rem;
-  border-top: 1px solid var(--site-border);
-  font-size: .66rem; letter-spacing: .14em; color: var(--site-muted);
-}
-.ps-footer-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(34, 211, 238, .35), transparent); }
 
 @media (max-width: 719px) {
   .ps-hero h1 { font-size: 1.75rem; }

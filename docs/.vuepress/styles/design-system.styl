@@ -660,12 +660,18 @@ html body .footer
 // ============================================================
 
 @media screen
-  // 只清掉面板的背景/阴影/圆角，保留主题原有的内容列宽度与内边距
+  // 只清掉面板的背景/阴影/圆角；内容列宽度按本页需要放宽到 960
   html body .theme-container.projects-page .theme-vdoing-wrapper
     background-color: transparent
     background-image: none
     box-shadow: none
     border-radius: 0
+    max-width: 1040px
+
+  // 960 = wrapper(1040) - 左右各 2.5rem 内边距
+  html body .theme-container.projects-page .theme-vdoing-content
+    max-width: 960px
+    width: 100%
 
   // 组件原本用 100vw + 负外边距做“通栏”，现在收回到父内容列内
   html body .theme-container.projects-page .ps
