@@ -116,6 +116,8 @@ function bindFeatureTilt () {
   let bound = 0
   document.querySelectorAll(TILT_SELECTOR).forEach(el => {
     if (el.__tiltBound) return
+    // 分页按钮也带 card-box 类，但不是卡片，跳过
+    if (el.closest && el.closest('.pagination')) return
     el.__tiltBound = true
     bound++
     let raf = 0

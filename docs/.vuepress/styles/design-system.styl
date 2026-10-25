@@ -918,3 +918,22 @@ html body .footer
     p
       position: relative
       transform: translateZ(4px)
+
+// ============================================================
+// 分页：prev/next 自带 card-box 类，会被卡片 3D 规则改成 relative 并居中重叠
+// 这里用更高优先级还原 absolute 左右贴边
+// ============================================================
+
+@media screen
+  html body .theme-container .pagination > span.card-box
+    position: absolute
+    top: 0
+    transform: none
+
+  html body .theme-container .pagination > span.card-box.prev
+    left: 0
+    right: auto
+
+  html body .theme-container .pagination > span.card-box.next
+    right: 0
+    left: auto
