@@ -1,16 +1,8 @@
 <template>
   <section class="ps">
-    <div class="ps-bg" aria-hidden="true">
-      <span class="ps-orb ps-orb-a"></span>
-      <span class="ps-orb ps-orb-b"></span>
-      <span class="ps-orb ps-orb-c"></span>
-      <span class="ps-grid"></span>
-      <span class="ps-scan"></span>
-    </div>
-
     <div class="ps-inner">
       <header class="ps-hero">
-        <div class="ps-eyebrow"><i></i> PROJECT LAB / 2026</div>
+        <p class="ps-eyebrow"><i></i>PROJECT LAB / 2026</p>
         <h1>把想法做成<br /><span>可运行的项目</span></h1>
         <p class="ps-lead">这里是三木的实验场：智能体、旅行规划、内容系统，以及正在路上的新想法。</p>
         <div class="ps-stats">
@@ -22,12 +14,11 @@
 
       <div class="ps-cards">
         <a class="ps-card ps-card-featured" href="/projects/travel/" @mousemove="onMove">
-          <span class="ps-card-sheen"></span>
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-cyan" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 11.5 21 4l-7.5 18-2.7-7.3L3 11.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m10.8 14.7 3.7-3.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
             </span>
-            <span class="ps-status ps-live"><i></i> LIVE</span>
+            <span class="ps-status ps-live"><i></i>LIVE</span>
           </div>
           <h2>智能旅行助手</h2>
           <p>输入目的地、日期与偏好，自动生成逐日行程、预算明细和实用提示。前端 Vue，后端 FastAPI，已接入线上 API。</p>
@@ -62,7 +53,6 @@
         </a>
 
         <div class="ps-card ps-card-soon" @mousemove="onMove">
-          <span class="ps-card-sheen"></span>
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-pink" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
@@ -100,120 +90,164 @@ export default {
 </script>
 
 <style scoped>
+/* 项目页：完全复用站点设计 token（--site-*），只做栏目级排版 */
 .ps {
   --ps-cyan: #22d3ee;
   --ps-violet: #8b5cf6;
-  --ps-lime: #a3e635;
-  --ps-pink: #f472b6;
   position: relative;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  margin-top: -1.4rem;
-  overflow: hidden;
-  background: #060b16;
-  color: #e5e7eb;
-  isolation: isolate;
+  width: 100%;
+  margin: 0;
+  color: var(--site-text);
 }
-.ps-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.ps-orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; }
-.ps-orb-a { width: 420px; height: 420px; left: -120px; top: -120px; background: rgba(34, 211, 238, .45); }
-.ps-orb-b { width: 460px; height: 460px; right: -160px; top: 120px; background: rgba(139, 92, 246, .38); }
-.ps-orb-c { width: 320px; height: 320px; left: 35%; bottom: -180px; background: rgba(244, 114, 182, .22); }
-.ps-grid {
-  position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(148, 163, 184, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, .09) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 85%);
+.ps-inner {
+  width: 100%;
+  margin: 0 auto;
 }
-.ps-scan {
-  position: absolute; inset: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(34, 211, 238, .06) 48%, transparent 60%);
-  transform: translateX(-100%);
-  animation: ps-scan 9s linear infinite;
+
+/* ---------- Hero ---------- */
+.ps-hero { max-width: 700px; }
+.ps-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin: 0; font-size: .68rem; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--site-accent-text);
 }
-.ps-inner { position: relative; max-width: 1120px; margin: 0 auto; padding: 4.5rem 1.5rem 2.5rem; }
-.ps-hero { max-width: 760px; margin-bottom: 2.5rem; }
-.ps-eyebrow { display: inline-flex; align-items: center; gap: .5rem; font-size: .72rem; letter-spacing: .22em; color: #67e8f9; }
-.ps-eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--ps-cyan); box-shadow: 0 0 12px var(--ps-cyan); animation: ps-pulse 2s ease-in-out infinite; }
-.ps-hero h1 { margin: .8rem 0 1rem; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.12; letter-spacing: -.03em; color: #f8fafc; }
-.ps-hero h1 span { background: linear-gradient(100deg, #67e8f9, #a78bfa 55%, #f0abfc); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.ps-lead { max-width: 620px; margin: 0; color: #94a3b8; line-height: 1.8; font-size: .98rem; }
-.ps-stats { display: flex; gap: 2.4rem; margin-top: 1.8rem; }
-.ps-stats div { display: flex; flex-direction: column; gap: .2rem; }
-.ps-stats b { font-size: 1.35rem; color: #f8fafc; font-variant-numeric: tabular-nums; }
-.ps-stats span { font-size: .72rem; letter-spacing: .08em; color: #64748b; }
-.ps-cards { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; }
+.ps-eyebrow i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ps-cyan); box-shadow: 0 0 10px var(--ps-cyan);
+}
+.ps-hero h1 {
+  margin: .85rem 0 .9rem;
+  font-size: 2.15rem; line-height: 1.35;
+  letter-spacing: -.02em; color: #f8fafc; font-weight: 650;
+}
+.ps-hero h1 span {
+  background: linear-gradient(100deg, #67e8f9, #a78bfa 60%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+}
+.ps-lead {
+  margin: 0; max-width: 620px;
+  font-size: .95rem; line-height: 1.85; color: var(--site-muted);
+}
+.ps-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1.5rem; }
+.ps-stats div {
+  display: flex; flex-direction: column; gap: .15rem;
+  padding-left: .9rem; border-left: 2px solid var(--site-border);
+}
+.ps-stats div:first-child { border-left-color: rgba(34, 211, 238, .5); }
+.ps-stats b {
+  font-size: 1.25rem; font-weight: 650; line-height: 1.2;
+  color: #f8fafc; font-variant-numeric: tabular-nums;
+}
+.ps-stats span { font-size: .72rem; letter-spacing: .04em; color: var(--site-muted); }
+
+/* ---------- 卡片栅格 ---------- */
+.ps-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2.2rem;
+}
 .ps-card {
   position: relative;
-  grid-column: span 6;
-  display: flex;
-  flex-direction: column;
-  min-height: 260px;
-  padding: 1.25rem 1.3rem 1.1rem;
-  border: 1px solid rgba(148, 163, 184, .18);
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+  display: flex; flex-direction: column;
+  padding: 1.15rem 1.2rem 1rem;
+  background-color: var(--site-card);
+  border: 1px solid var(--site-border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px var(--site-shadow);
+  color: inherit; text-decoration: none; overflow: hidden;
+  transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
-.ps-card::before {
-  content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease;
-  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(34, 211, 238, .12), transparent 70%);
+.ps-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(34, 211, 238, .35);
+  box-shadow: 0 18px 44px var(--site-shadow);
 }
-.ps-card:hover { transform: translateY(-6px); border-color: rgba(34, 211, 238, .45); box-shadow: 0 18px 50px rgba(2, 8, 20, .55); }
-.ps-card:hover::before { opacity: 1; }
-.ps-card-featured { grid-column: span 7; border-color: rgba(34, 211, 238, .3); background: linear-gradient(145deg, rgba(34, 211, 238, .1), rgba(139, 92, 246, .07) 55%, rgba(255,255,255,.02)); }
+.ps-card-featured {
+  grid-column: 1 / -1;
+  background-image: linear-gradient(135deg, rgba(34, 211, 238, .09), rgba(139, 92, 246, .05) 60%, transparent);
+  border-color: rgba(34, 211, 238, .22);
+}
 .ps-card-featured::after {
-  content: ''; position: absolute; width: 180px; height: 180px; right: -50px; top: -50px; border-radius: 50%;
-  background: rgba(34, 211, 238, .18); filter: blur(40px);
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(34, 211, 238, .16); filter: blur(46px);
+  pointer-events: none;
 }
-.ps-cards .ps-card:nth-child(2) { grid-column: span 5; }
-.ps-cards .ps-card:nth-child(3) { grid-column: span 5; }
-.ps-card-soon { grid-column: span 7; opacity: .76; border-style: dashed; }
-.ps-card-sheen { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.08) 45%, transparent 60%); transform: translateX(-120%); transition: transform .7s ease; }
-.ps-card:hover .ps-card-sheen { transform: translateX(120%); }
-.ps-card-head { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.15rem; }
-.ps-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; border: 1px solid currentColor; }
-.ps-icon svg { width: 22px; height: 22px; }
-.ps-icon-cyan { color: #67e8f9; background: rgba(34, 211, 238, .08); box-shadow: 0 0 24px rgba(34, 211, 238, .14); }
-.ps-icon-violet { color: #c4b5fd; background: rgba(139, 92, 246, .1); }
-.ps-icon-lime { color: #bef264; background: rgba(163, 230, 53, .08); }
-.ps-icon-pink { color: #f9a8d4; background: rgba(244, 114, 182, .08); }
-.ps-status { display: inline-flex; align-items: center; gap: .4rem; font-size: .64rem; letter-spacing: .14em; color: #94a3b8; }
-.ps-status i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: ps-pulse 2s ease-in-out infinite; }
+.ps-card-soon { grid-column: 1 / -1; border-style: dashed; opacity: .8; }
+
+.ps-card-head {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.ps-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 10px;
+  border: 1px solid var(--site-border);
+  background-color: rgba(255, 255, 255, .03);
+  color: var(--site-accent-text);
+}
+.ps-icon svg { width: 20px; height: 20px; }
+.ps-icon-violet { color: #c4b5fd; }
+.ps-icon-lime { color: #bef264; }
+.ps-icon-pink { color: #f9a8d4; }
+.ps-status {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .64rem; letter-spacing: .12em; color: var(--site-muted);
+}
+.ps-status i {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #4ade80; box-shadow: 0 0 8px #4ade80;
+}
 .ps-live { color: #86efac; }
 .ps-series { color: #c4b5fd; }
 .ps-soon { color: #f9a8d4; }
-.ps-card h2 { position: relative; margin: 0 0 .6rem; font-size: 1.3rem; color: #f8fafc; letter-spacing: -.01em; }
-.ps-card p { position: relative; margin: 0 0 1rem; color: #94a3b8; font-size: .86rem; line-height: 1.75; }
-.ps-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
-.ps-tags span { padding: .16rem .5rem; border: 1px solid rgba(148, 163, 184, .2); border-radius: 999px; font-size: .66rem; color: #cbd5e1; background: rgba(255,255,255,.025); }
-.ps-card-foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: auto; padding-top: .9rem; border-top: 1px solid rgba(148, 163, 184, .12); font-size: .72rem; color: #64748b; }
-.ps-card-foot b { color: #67e8f9; font-weight: 600; white-space: nowrap; }
+
+.ps-card h2 {
+  position: relative;
+  margin: .85rem 0 .45rem;
+  font-size: 1.12rem; font-weight: 650; letter-spacing: -.01em;
+  color: #f8fafc;
+}
+.ps-card p {
+  position: relative;
+  margin: 0 0 1rem;
+  font-size: .84rem; line-height: 1.7; color: var(--site-muted);
+}
+.ps-tags { position: relative; display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.ps-tags span {
+  padding: .16rem .5rem;
+  border: 1px solid var(--site-border); border-radius: 999px;
+  font-size: .66rem; color: var(--site-muted);
+  background-color: rgba(255, 255, 255, .02);
+}
+.ps-card-foot {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-top: auto; padding-top: .85rem;
+  border-top: 1px solid var(--site-border);
+  font-size: .72rem; color: var(--site-muted);
+}
+.ps-card-foot b { color: var(--site-accent-text); font-weight: 600; white-space: nowrap; }
 .ps-card-foot em { font-style: normal; display: inline-block; transition: transform .25s ease; }
-.ps-card:hover .ps-card-foot em { transform: translateX(4px); }
-.ps-muted { color: #64748b !important; }
-.ps-footer { display: flex; align-items: center; gap: 1rem; margin-top: 2.2rem; font-size: .62rem; letter-spacing: .18em; color: #475569; }
-.ps-footer-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(34,211,238,.35), transparent); }
-@keyframes ps-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-@keyframes ps-scan { to { transform: translateX(100%); } }
-@media (max-width: 900px) {
-  .ps-inner { padding-top: 3.2rem; }
-  .ps-card, .ps-card-featured, .ps-cards .ps-card:nth-child(2), .ps-cards .ps-card:nth-child(3), .ps-card-soon { grid-column: span 12; }
-  .ps-card { min-height: 0; }
-  .ps-stats { gap: 1.5rem; }
+.ps-card:hover .ps-card-foot em { transform: translateX(3px); }
+.ps-muted { color: var(--site-muted) !important; }
+
+.ps-footer {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: 1.75rem; padding-top: 1rem;
+  border-top: 1px solid var(--site-border);
+  font-size: .66rem; letter-spacing: .14em; color: var(--site-muted);
 }
-@media (max-width: 560px) {
-  .ps-inner { padding-left: 1rem; padding-right: 1rem; }
-  .ps-hero h1 { font-size: 2rem; }
-  .ps-stats { flex-wrap: wrap; gap: 1rem 1.6rem; }
-  .ps-card-foot { align-items: flex-start; flex-direction: column; gap: .35rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ps-scan, .ps-eyebrow i, .ps-status i { animation: none; }
-  .ps-card, .ps-card-sheen { transition: none; }
+.ps-footer-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(34, 211, 238, .35), transparent); }
+
+@media (max-width: 719px) {
+  .ps-hero h1 { font-size: 1.75rem; }
+  .ps-cards { grid-template-columns: minmax(0, 1fr); }
+  .ps-card-featured, .ps-card-soon { grid-column: auto; }
+  .ps-stats { gap: 1.1rem; }
+  .ps-card-foot { flex-direction: column; align-items: flex-start; gap: .35rem; }
 }
 </style>
