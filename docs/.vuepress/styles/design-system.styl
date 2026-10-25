@@ -754,3 +754,58 @@ html body .footer
       pointer-events: none
       background-image: linear-gradient(90deg, transparent, rgba(34, 211, 238, .26) 20%, rgba(139, 92, 246, .22) 66%, transparent)
       opacity: .55
+
+// ============================================================
+// 顶栏 / 底栏：去掉硬线，改为「雾化渐隐 + 环境光」过渡
+// ============================================================
+
+@keyframes edge-breathe
+  0%, 100%
+    opacity: .75
+  50%
+    opacity: 1
+
+@media screen
+  html body .navbar
+    border-bottom: none
+    overflow: visible
+    box-shadow: 0 26px 50px -38px rgba(2, 8, 20, .95), 0 18px 38px -34px rgba(34, 211, 238, .22)
+
+    &::after
+      content: ''
+      position: absolute
+      left: 0
+      right: 0
+      top: 100%
+      height: 46px
+      pointer-events: none
+      background-image: linear-gradient(180deg, rgba(6, 11, 22, .55), rgba(6, 11, 22, .18) 42%, transparent 78%), linear-gradient(180deg, rgba(34, 211, 238, .07), transparent 70%)
+      -webkit-mask-image: linear-gradient(180deg, #000, rgba(0, 0, 0, .55) 46%, transparent)
+      mask-image: linear-gradient(180deg, #000, rgba(0, 0, 0, .55) 46%, transparent)
+      animation: edge-breathe 12s ease-in-out infinite
+
+  html body .footer
+    border-top: none
+    overflow: visible
+    box-shadow: 0 -26px 50px -38px rgba(2, 8, 20, .95), 0 -18px 38px -34px rgba(34, 211, 238, .2)
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      right: 0
+      bottom: 100%
+      height: 46px
+      pointer-events: none
+      background-image: linear-gradient(0deg, rgba(6, 11, 22, .55), rgba(6, 11, 22, .18) 42%, transparent 78%), linear-gradient(0deg, rgba(34, 211, 238, .06), transparent 70%)
+      -webkit-mask-image: linear-gradient(0deg, #000, rgba(0, 0, 0, .55) 46%, transparent)
+      mask-image: linear-gradient(0deg, #000, rgba(0, 0, 0, .55) 46%, transparent)
+      animation: edge-breathe 14s ease-in-out infinite
+
+    &::after
+      content: none
+
+  @media (prefers-reduced-motion: reduce)
+    html body .navbar::after,
+    html body .footer::before
+      animation: none
