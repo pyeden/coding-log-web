@@ -27,3 +27,7 @@ urls.txt
 *log
 *pem
 *key
+# python
+backend/travel_assistant/.venv/
+__pycache__/
+*.pyc

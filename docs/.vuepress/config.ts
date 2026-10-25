@@ -29,6 +29,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     // 导航配置
     nav: [
       { text: '首页', link: '/' },
+      { text: '项目', link: '/projects/' },
       { text: 'AI技术', link: '/ai/' },
       {
         text: '前端',
@@ -355,6 +356,16 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
       },
     ],
   ],
+
+  // 开发/运行环境将 /api/travel 转发到 FastAPI（生产同样由 dev server 代理）
+  devServer: {
+    proxy: {
+      '/api/travel': {
+        target: 'http://127.0.0.1:8090',
+        changeOrigin: true,
+      },
+    },
+  },
 
   markdown: {
     lineNumbers: true,
