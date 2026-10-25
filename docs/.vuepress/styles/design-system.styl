@@ -961,3 +961,24 @@ html body .footer
 
     &:hover
       border-color: rgba(34, 211, 238, .42)
+
+// ============================================================
+// 项目页卡片与首页卡片完全对齐（圆角/底色/阴影/分层深度）
+// ============================================================
+
+@media screen
+  html body .theme-container .ps-card
+    border-radius: 16px
+    background-image: none
+    box-shadow: 0 18px 40px var(--site-shadow)
+    overflow: visible
+
+    h2
+      transform: translateZ(10px)
+    p
+      transform: translateZ(5px)
+
+  // featured / soon 不再用额外渐变，保持和首页同一张卡面
+  html body .theme-container .ps-card.ps-card-featured,
+  html body .theme-container .ps-card.ps-card-soon
+    background-image: none
