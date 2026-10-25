@@ -1,11 +1,10 @@
-//***vdoing 主题变量覆盖：统一深色科技风***//
+//*** vdoing 主题变量覆盖：深色科技风 + 统一设计 token ***//
 
 $accentColor = #22d3ee
 $activeColor = #8b5cf6
 $bannerTextColor = #e6f7ff
 $arrowBgColor = #64748b
 
-// 布局
 $navbarHeight = 3.6rem
 $sidebarWidth = 17rem
 $contentWidth = 880px
@@ -13,44 +12,98 @@ $homePageWidth = 1120px
 $rightMenuWidth = 230px
 $lineNumbersWrapperWidth = 2.5rem
 
-// 浅色模式（保留可切换）
+// 浅色模式
 .theme-mode-light
+  --site-bg: #f6f8fc
+  --site-surface: #ffffff
+  --site-panel: rgba(255,255,255,.62)
+  --site-card: rgba(255,255,255,.86)
+  --site-chrome: rgba(246,248,252,.94)
+  --site-elevated: #f8fafc
+  --site-text: #111827
+  --site-muted: #52627a
+  --site-border: rgba(15,23,42,.10)
+  --site-grid: rgba(15,23,42,.09)
+  --site-accent: #0891b2
+  --site-accent-text: #0369a1
+  --site-accent-2: #6366f1
+  --site-glow: rgba(14,165,233,.10)
+  --site-glow-2: rgba(99,102,241,.08)
+  --site-hero-veil: rgba(255,255,255,.35)
+  --site-shadow: rgba(15,23,42,.10)
+
   --bodyBg: #f6f8fc
-  --mainBg: #ffffff
-  --sidebarBg: rgba(255,255,255,.92)
-  --blurBg: rgba(255,255,255,.86)
+  --mainBg: var(--site-card)
+  --sidebarBg: var(--site-chrome)
+  --blurBg: var(--site-chrome)
   --customBlockBg: #f8fafc
   --textColor: #111827
-  --textLightenColor: #0284c7
-  --borderColor: rgba(15,23,42,.08)
+  --textLightenColor: #0369a1
+  --borderColor: var(--site-border)
   --codeBg: #f6f8fb
   --codeColor: #334155
   codeThemeLight()
 
 // 深色模式（默认）
 .theme-mode-dark
+  --site-bg: #060b16
+  --site-surface: #0b1423
+  --site-panel: rgba(11,20,35,.62)
+  --site-card: rgba(13,24,41,.80)
+  --site-chrome: rgba(6,11,22,.92)
+  --site-elevated: #111c30
+  --site-text: #dbe7f3
+  --site-muted: #8ea3b8
+  --site-border: rgba(120,160,200,.16)
+  --site-grid: rgba(120,160,200,.16)
+  --site-accent: #22d3ee
+  --site-accent-text: #67e8f9
+  --site-accent-2: #8b5cf6
+  --site-glow: rgba(34,211,238,.14)
+  --site-glow-2: rgba(139,92,246,.12)
+  --site-hero-veil: rgba(6,11,22,.35)
+  --site-shadow: rgba(0,0,0,.38)
+
   --bodyBg: #060b16
-  --mainBg: #0b1423
-  --sidebarBg: rgba(8,16,29,.94)
-  --blurBg: rgba(6,11,22,.84)
-  --customBlockBg: #0e1a2b
+  --mainBg: var(--site-card)
+  --sidebarBg: var(--site-chrome)
+  --blurBg: var(--site-chrome)
+  --customBlockBg: rgba(14,26,43,.72)
   --textColor: #dbe7f3
   --textLightenColor: #67e8f9
-  --borderColor: rgba(120,160,200,.16)
+  --borderColor: var(--site-border)
   --codeBg: #070f1b
   --codeColor: #dbe7f3
   codeThemeDark()
 
 // 阅读模式
 .theme-mode-read
+  --site-bg: #14120d
+  --site-surface: #1a1711
+  --site-panel: rgba(26,23,17,.62)
+  --site-card: rgba(30,26,18,.84)
+  --site-chrome: rgba(20,18,13,.94)
+  --site-elevated: #211d16
+  --site-text: #e8dcc4
+  --site-muted: #b8a888
+  --site-border: rgba(214,179,106,.18)
+  --site-grid: rgba(214,179,106,.12)
+  --site-accent: #d6b36a
+  --site-accent-text: #e3c47e
+  --site-accent-2: #b0894f
+  --site-glow: rgba(214,179,106,.10)
+  --site-glow-2: rgba(176,137,79,.08)
+  --site-hero-veil: rgba(20,18,13,.40)
+  --site-shadow: rgba(0,0,0,.42)
+
   --bodyBg: #14120d
-  --mainBg: #1a1711
-  --sidebarBg: rgba(26,23,17,.94)
-  --blurBg: rgba(20,18,13,.86)
+  --mainBg: var(--site-card)
+  --sidebarBg: var(--site-chrome)
+  --blurBg: var(--site-chrome)
   --customBlockBg: #211d16
   --textColor: #e8dcc4
-  --textLightenColor: #d6b36a
-  --borderColor: rgba(214,179,106,.18)
+  --textLightenColor: #e3c47e
+  --borderColor: var(--site-border)
   --codeBg: #12100b
   --codeColor: #e8dcc4
   codeThemeDark()

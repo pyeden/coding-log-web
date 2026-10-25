@@ -1,5 +1,6 @@
 ---
 home: true
+bannerBg: none
 # heroImage: /img/web.png
 heroText: 三木 vlog
 tagline: Web前端技术博客，积跬步以至千里，致敬每个爱学习的你。
