@@ -719,3 +719,38 @@ html body .footer
       flex: 1 1 100%
       width: 100%
       max-width: 100%
+
+// ============================================================
+// 顶栏 / 底栏：取消硬边线，改为两端渐隐的发丝线 + 柔和投影
+// ============================================================
+
+@media screen
+  html body .navbar
+    border-bottom: none
+    box-shadow: 0 1px 0 rgba(34, 211, 238, .06), 0 14px 34px -18px rgba(0, 0, 0, .6)
+
+    &::after
+      content: ''
+      position: absolute
+      left: 0
+      right: 0
+      bottom: 0
+      height: 1px
+      pointer-events: none
+      background-image: linear-gradient(90deg, transparent, rgba(34, 211, 238, .30) 18%, rgba(139, 92, 246, .24) 62%, transparent)
+      opacity: .6
+
+  html body .footer
+    border-top: none
+    box-shadow: 0 -14px 34px -18px rgba(0, 0, 0, .6)
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      right: 0
+      top: 0
+      height: 1px
+      pointer-events: none
+      background-image: linear-gradient(90deg, transparent, rgba(34, 211, 238, .26) 20%, rgba(139, 92, 246, .22) 66%, transparent)
+      opacity: .55
