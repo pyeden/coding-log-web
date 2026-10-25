@@ -937,3 +937,27 @@ html body .footer
   html body .theme-container .pagination > span.card-box.next
     right: 0
     left: auto
+
+// ============================================================
+// 卡片边框统一：与首页 .feature 一致（静止透明、hover 青色描边）
+// ============================================================
+
+@media screen
+  html body .theme-container .card-box,
+  html body .theme-container .post,
+  html body .theme-container .ps-card,
+  html body .theme-container .column-wrapper
+    border-width: 1px
+    border-style: solid
+    border-color: transparent
+
+    &:hover
+      border-color: rgba(34, 211, 238, .42)
+
+  // 项目页 featured / soon 也跟首页保持一致，不再单独用彩色或虚线边框
+  html body .theme-container .ps-card.ps-card-featured,
+  html body .theme-container .ps-card.ps-card-soon
+    border-color: transparent
+
+    &:hover
+      border-color: rgba(34, 211, 238, .42)
