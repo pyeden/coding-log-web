@@ -614,3 +614,25 @@ html body .footer
       width: 100%
       max-width: 100%
       min-height: 0
+
+// 提升选择器优先级，覆盖 vdoing 组件 scoped 的 30% 卡片宽度
+@media screen
+  html body .theme-container .home-wrapper .banner .banner-conent .feature
+    flex: 0 0 31.5%
+    width: 31.5%
+    max-width: 31.5%
+    box-sizing: border-box
+    min-width: 0
+
+  @media (max-width: 1024px)
+    html body .theme-container .home-wrapper .banner .banner-conent .feature
+      flex: 0 0 calc(50% - .5rem)
+      width: calc(50% - .5rem)
+      max-width: calc(50% - .5rem)
+
+  @media (max-width: 719px)
+    html body .theme-container .home-wrapper .banner .banner-conent .feature
+      flex: 1 1 100%
+      width: 100%
+      max-width: 100%
+      min-height: 0
