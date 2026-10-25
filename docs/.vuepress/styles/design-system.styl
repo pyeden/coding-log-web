@@ -871,8 +871,7 @@ html body .footer
       --ry: -1.6deg
 
     // 卡内元素分层，倾斜时产生视差
-    .feature-img
-      transform: translateZ(18px)
+    // 注意：.feature-img 自带 filter: drop-shadow，会被扁平化，translateZ 无效
     h2
       transform: translateZ(10px)
     p
