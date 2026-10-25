@@ -1,0 +1,357 @@
+// ============================================================
+// 全站统一设计系统：深色科技风（Dark Cyber）
+// 只覆盖视觉层，不改主题布局与交互逻辑
+// ============================================================
+
+.theme-mode-dark
+  --site-accent: #22d3ee
+  --site-accent-2: #8b5cf6
+  --site-surface: #0b1423
+  --site-elevated: #111c30
+  --site-text: #dbe7f3
+  --site-muted: #8ea3b8
+  --site-border: rgba(120,160,200,.16)
+  --site-glow: rgba(34,211,238,.14)
+  --site-shadow: rgba(0,0,0,.32)
+
+.theme-mode-light
+  --site-accent: #0ea5e9
+  --site-accent-2: #6366f1
+  --site-surface: #ffffff
+  --site-elevated: #f8fafc
+  --site-text: #111827
+  --site-muted: #64748b
+  --site-border: rgba(15,23,42,.08)
+  --site-glow: rgba(14,165,233,.10)
+  --site-shadow: rgba(15,23,42,.08)
+
+html
+  scroll-behavior: smooth
+
+body
+  font-family: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
+  letter-spacing: .01em
+  background: var(--bodyBg)
+  color: var(--textColor)
+
+::selection
+  background: rgba(34,211,238,.28)
+  color: #f8fafc
+
+::-webkit-scrollbar
+  width: 8px
+  height: 8px
+::-webkit-scrollbar-track
+  background: var(--bodyBg)
+::-webkit-scrollbar-thumb
+  background: rgba(120,160,200,.28)
+  border-radius: 999px
+::-webkit-scrollbar-thumb:hover
+  background: rgba(34,211,238,.55)
+
+// ---------- 导航 ----------
+.navbar
+  height: 3.6rem
+  background: var(--blurBg)
+  border-bottom: 1px solid var(--site-border)
+  box-shadow: 0 10px 30px rgba(0,0,0,.18)
+  backdrop-filter: blur(18px) saturate(160%)
+  -webkit-backdrop-filter: blur(18px) saturate(160%)
+  .home-link
+    .logo
+      width: 28px
+      height: 28px
+      border-radius: 8px
+      box-shadow: 0 0 0 1px var(--site-border), 0 0 18px var(--site-glow)
+    .site-name
+      color: var(--site-text)
+      font-weight: 700
+      letter-spacing: -.02em
+  .links
+    background: transparent
+    a
+      color: var(--site-text)
+      opacity: .74
+      font-weight: 500
+      transition: color .2s ease, opacity .2s ease
+      &:hover, &.active
+        color: var(--site-accent)
+        opacity: 1
+  .nav-dropdown
+    background: var(--site-surface)
+    border: 1px solid var(--site-border)
+    border-radius: 10px
+    box-shadow: 0 18px 40px var(--site-shadow)
+    a
+      color: var(--site-text)
+      &:hover
+        color: var(--site-accent)
+
+body .search-box
+  input
+    background: var(--site-elevated)
+    border: 1px solid var(--site-border)
+    border-radius: 10px
+    color: var(--site-text)
+    transition: border-color .2s ease, box-shadow .2s ease
+    &:focus
+      border-color: var(--site-accent)
+      box-shadow: 0 0 0 3px var(--site-glow)
+
+// ---------- 侧栏 ----------
+.sidebar
+  background: var(--sidebarBg)
+  border-right: 1px solid var(--site-border)
+  padding: .75rem .6rem 2rem
+  .blogger
+    padding: .6rem .55rem 1rem
+    border-bottom: 1px solid var(--site-border)
+    margin-bottom: .6rem
+    .blogger-info .name
+      color: var(--site-text)
+      font-weight: 650
+  .sidebar-links
+    padding: .3rem 0
+  a
+    color: var(--site-text)
+    border-radius: 8px
+    transition: color .2s ease, background .2s ease
+    &:hover
+      color: var(--site-accent)
+      background: var(--site-glow)
+  .sidebar-heading
+    color: var(--site-muted)
+    font-size: .72rem
+    letter-spacing: .1em
+    text-transform: uppercase
+  .active > a, a.active, .sidebar-link.active
+    color: var(--site-accent)
+    background: linear-gradient(90deg, var(--site-glow), transparent)
+  .sidebar-sub-headers
+    border-left: 1px solid var(--site-border)
+
+// ---------- 内容与排版 ----------
+.theme-vdoing-content
+  font-size: 16px
+  line-height: 1.88
+  color: var(--site-text)
+  h1, h2, h3, h4, h5, h6
+    color: var(--site-text)
+    letter-spacing: -.02em
+  h1
+    font-size: 2.15rem
+  h2
+    margin-top: 2.4rem
+    padding: .25rem 0 .25rem .85rem
+    border-bottom: none
+    border-left: 3px solid var(--site-accent)
+    border-radius: 4px
+    background: linear-gradient(90deg, var(--site-glow), transparent)
+  h3
+    margin-top: 2rem
+  p
+    line-height: 1.9
+  a
+    color: var(--site-accent)
+    text-decoration: none
+    border-bottom: 1px solid transparent
+    transition: border-color .2s ease
+    &:hover
+      border-bottom-color: var(--site-accent)
+  blockquote
+    margin: 1.4rem 0
+    padding: .85rem 1.1rem
+    background: var(--site-glow)
+    border-left: 3px solid var(--site-accent)
+    border-radius: 0 10px 10px 0
+    color: var(--site-text)
+    opacity: 1
+    > p
+      margin: 0
+  hr
+    border-top: 1px solid var(--site-border)
+  table
+    border: 1px solid var(--site-border)
+    border-radius: 10px
+    overflow: hidden
+    display: table
+    width: 100%
+    th
+      background: var(--site-elevated)
+      color: var(--site-text)
+    tr
+      border-top: 1px solid var(--site-border)
+      &:nth-child(2n)
+        background: rgba(255,255,255,.025)
+    th, td
+      border: 1px solid var(--site-border)
+  code
+    background: rgba(34,211,238,.08)
+    border-radius: 5px
+    padding: .1rem .35rem
+    color: var(--site-accent)
+  pre
+    border: 1px solid var(--site-border)
+    border-radius: 12px
+    code
+      background: transparent
+      padding: 0
+      color: inherit
+  img
+    border-radius: 10px
+
+.theme-vdoing-content .chapter-figure
+  img
+    border-radius: 10px
+    border: 1px solid var(--site-border)
+    box-shadow: 0 18px 40px rgba(0,0,0,.25)
+  figcaption
+    color: var(--site-muted)
+
+// 自定义容器
+.custom-block
+  border: 1px solid var(--site-border)
+  border-radius: 10px
+  background: var(--customBlockBg)
+  &.tip
+    border-color: rgba(34,211,238,.35)
+    background: rgba(34,211,238,.07)
+  &.warning
+    border-color: rgba(245,158,11,.35)
+  &.danger
+    border-color: rgba(244,63,94,.35)
+
+// 卡片
+.card-box
+  border: 1px solid var(--site-border)
+  border-radius: 14px
+  background: var(--site-surface)
+  box-shadow: 0 12px 32px var(--site-shadow)
+  transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease
+  &:hover
+    border-color: rgba(34,211,238,.28)
+    box-shadow: 0 18px 48px var(--site-shadow)
+
+// ---------- 首页 ----------
+.home-wrapper
+  .banner
+    margin-top: 3.6rem
+    min-height: 500px
+    background:
+      radial-gradient(700px circle at 12% 18%, rgba(34,211,238,.16), transparent 55%),
+      radial-gradient(620px circle at 88% 8%, rgba(139,92,246,.14), transparent 52%),
+      linear-gradient(180deg, #07101f 0%, #060b16 100%)
+    border-bottom: 1px solid var(--site-border)
+    &::before
+      content: ''
+      position: absolute
+      inset: 0
+      background-image: linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px)
+      background-size: 48px 48px
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 88%)
+      pointer-events: none
+    .banner-conent
+      position: relative
+      z-index: 1
+    .hero
+      h1
+        font-size: clamp(2.6rem, 5.5vw, 4rem)
+        color: #f8fafc
+        text-shadow: 0 0 40px rgba(34,211,238,.18)
+      .description
+        color: #9fb3c8
+        opacity: 1
+      .action-button
+        border: 1px solid rgba(34,211,238,.35)
+        border-radius: 10px
+        background: linear-gradient(135deg, #0891b2, #0e7490)
+        box-shadow: 0 10px 30px rgba(34,211,238,.18)
+    .features
+      gap: 1rem
+    .feature
+      flex: 1 1 30%
+      max-width: 31%
+      padding: 1.4rem 1rem
+      background: rgba(11,20,35,.72)
+      border: 1px solid var(--site-border)
+      border-radius: 16px
+      transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease
+      &:hover
+        transform: translateY(-4px)
+        border-color: rgba(34,211,238,.35)
+        box-shadow: 0 18px 44px rgba(0,0,0,.35)
+      .feature-img
+        width: 7rem
+        height: 7rem
+        filter: drop-shadow(0 0 18px rgba(34,211,238,.14))
+      h2
+        font-size: 1.15rem
+        color: var(--site-text)
+      p
+        color: var(--site-muted)
+        opacity: 1
+
+.main-wrapper
+  .main-left .card-box
+    background: var(--site-surface)
+
+// 文章列表
+.post-list
+  .post
+    padding: 1.2rem 1.4rem
+    margin-bottom: 1rem
+    border: 1px solid var(--site-border)
+    border-radius: 14px
+    background: var(--site-surface)
+    transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease
+    &:hover
+      transform: translateY(-2px)
+      border-color: rgba(34,211,238,.28)
+      box-shadow: 0 16px 40px var(--site-shadow)
+    .title-wrapper
+      a
+        color: var(--site-text)
+        &:hover
+          color: var(--site-accent)
+      h2
+        border: none
+        background: none
+        padding: 0
+    .article-info
+      color: var(--site-muted)
+    .excerpt-wrapper
+      border-top-color: var(--site-border)
+
+.pagination
+  a, button, .page-number
+    border: 1px solid var(--site-border)
+    border-radius: 8px
+    background: var(--site-surface)
+    color: var(--site-text)
+    &:hover
+      border-color: var(--site-accent)
+      color: var(--site-accent)
+
+// ---------- 页脚 ----------
+.footer
+  border-top: 1px solid var(--site-border)
+  background: transparent
+  color: var(--site-muted)
+  a
+    color: var(--site-accent)
+
+// ---------- 项目页微调 ----------
+.ps
+  background: #05070f
+  border-bottom: 1px solid var(--site-border)
+
+// 移动端
+@media (max-width: 719px)
+  .home-wrapper .banner
+    min-height: 420px
+    .hero h1
+      font-size: 2.3rem
+  .home-wrapper .feature
+    max-width: 100%
+  .theme-vdoing-content h2
+    margin-top: 2rem
