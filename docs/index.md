@@ -21,6 +21,18 @@ features: # 可选的
     details: 技术文档、教程、技巧、总结等文章
     link: /technology/
     imgUrl: /img/other.png
+  - title: 项目
+    details: 智能旅行助手与实验项目
+    link: /projects/
+    imgUrl: /img/other.png
+  - title: AI技术
+    details: Hello-Agents 智能体学习笔记
+    link: /ai/
+    imgUrl: /img/python.png
+  - title: 更多
+    details: 学习、面试、心情与实用技巧
+    link: /more/
+    imgUrl: /img/more.png
 # 文章列表显示方式: detailed 默认，显示详细版文章列表（包括作者、分类、标签、摘要、分页等）| simple => 显示简约版文章列表（仅标题和日期）| none 不显示文章列表
 # postList: detailed
 # simplePostListLength: 10 # 简约版文章列表显示的文章数量，默认10。（仅在postList设置为simple时生效）
