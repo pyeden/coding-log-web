@@ -533,6 +533,10 @@ html body .footer
   html body .buttons .go-to-comment
     display: block !important
 
+  // 当前页面没有评论区时由 enhanceApp.js 打上 no-comment，隐藏“去评论”
+  html body .buttons.no-comment .go-to-comment
+    display: none !important
+
   @media (max-width: 719px)
     html body .buttons
       right: .9rem
