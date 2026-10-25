@@ -839,6 +839,9 @@ html body .footer
       transition: transform .12s linear, box-shadow .3s ease, border-color .3s ease
       will-change: transform
 
+  html body .theme-container .column-wrapper
+    --rx: .6deg
+
 // ============================================================
 // 首页卡片：静态 3D 姿态（无悬浮时也有纵深）
 // ============================================================
@@ -872,7 +875,8 @@ html body .footer
 @media screen
   html body .theme-container .card-box,
   html body .theme-container .post,
-  html body .theme-container .ps-card
+  html body .theme-container .ps-card,
+  html body .theme-container .column-wrapper
     position: relative
     --rx: .9deg
     --ry: 0deg
