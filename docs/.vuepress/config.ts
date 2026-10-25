@@ -351,6 +351,11 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         target: 'http://127.0.0.1:23366',
         changeOrigin: true,
       },
+      // Artalk 管理面板（/sidebar/ 及其 assets）
+      '/sidebar': {
+        target: 'http://127.0.0.1:23366',
+        changeOrigin: true,
+      },
     },
   },
 
