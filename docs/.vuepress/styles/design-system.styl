@@ -13,6 +13,7 @@
   --site-border: rgba(120,160,200,.16)
   --site-glow: rgba(34,211,238,.14)
   --site-shadow: rgba(0,0,0,.32)
+  --site-grid: rgba(120,160,200,.12)
 
 .theme-mode-light
   --site-accent: #0ea5e9
@@ -24,6 +25,7 @@
   --site-border: rgba(15,23,42,.08)
   --site-glow: rgba(14,165,233,.10)
   --site-shadow: rgba(15,23,42,.08)
+  --site-grid: rgba(15,23,42,.07)
 
 html
   scroll-behavior: smooth
@@ -132,7 +134,7 @@ body .search-box
 
 .theme-vdoing-wrapper
   background-color: var(--site-surface)
-  background-image: linear-gradient(rgba(120,160,200,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(120,160,200,.055) 1px, transparent 1px) !important
+  background-image: linear-gradient(var(--site-grid) 1px, transparent 1px), linear-gradient(90deg, var(--site-grid) 1px, transparent 1px) !important
   background-size: 48px 48px !important
   background-position: 0 0 !important
   background-attachment: local !important
@@ -142,7 +144,7 @@ body .search-box
 .categories-page,
 .tags-page
   background-color: var(--bodyBg)
-  background-image: linear-gradient(rgba(120,160,200,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(120,160,200,.055) 1px, transparent 1px) !important
+  background-image: linear-gradient(var(--site-grid) 1px, transparent 1px), linear-gradient(90deg, var(--site-grid) 1px, transparent 1px) !important
   background-size: 48px 48px !important
   background-position: 0 0 !important
   background-attachment: local !important
@@ -274,7 +276,7 @@ body .search-box
       content: ''
       position: absolute
       inset: 0
-      background-image: linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px)
+      background-image: linear-gradient(rgba(148,163,184,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.12) 1px, transparent 1px)
       background-size: 48px 48px
       mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 88%)
       pointer-events: none
