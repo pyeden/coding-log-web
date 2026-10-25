@@ -999,3 +999,14 @@ html body .footer
 
     &:hover::after
       opacity: .9
+
+// ============================================================
+// 项目页三行卡片：取消静态 Y 轴旋转，保证中间行与上下两行左右对齐
+// （X 轴倾斜不影响水平边缘；hover 时仍有完整 3D）
+// ============================================================
+
+@media screen
+  html body .theme-container .ps-cards .ps-card,
+  html body .theme-container .ps-cards .ps-card:nth-child(3n + 1),
+  html body .theme-container .ps-cards .ps-card:nth-child(3n)
+    --ry: 0deg
