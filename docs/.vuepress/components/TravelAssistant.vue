@@ -192,8 +192,8 @@ export default {
   flex: none;
   padding: .25rem .6rem;
   border-radius: 999px;
-  background: rgba(17, 168, 205, .12);
-  color: #11a8cd;
+  background: rgba(34, 211, 238, .12);
+  color: var(--site-accent, #22d3ee);
   font-size: .78rem;
 }
 .ta-grid {
@@ -213,7 +213,7 @@ export default {
   color: var(--textColor);
   font: inherit;
 }
-.ta-field input:focus { outline: 2px solid rgba(17, 168, 205, .35); border-color: #11a8cd; }
+.ta-field input:focus { outline: 2px solid rgba(34, 211, 238, .35); border-color: var(--site-accent, #22d3ee); }
 .ta-prefs { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
 .ta-chip {
   padding: .3rem .7rem;
@@ -224,12 +224,12 @@ export default {
   cursor: pointer;
   font-size: .82rem;
 }
-.ta-chip.active { border-color: #11a8cd; background: rgba(17, 168, 205, .12); color: #11a8cd; }
+.ta-chip.active { border-color: var(--site-accent, #22d3ee); background: rgba(34, 211, 238, .12); color: var(--site-accent, #22d3ee); }
 .ta-submit {
   padding: .7rem 1.2rem;
   border: 0;
   border-radius: 8px;
-  background: #11a8cd;
+  background: var(--site-accent, #22d3ee);
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -240,11 +240,11 @@ export default {
 .ta-summary {
   padding: 1rem 1.1rem;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(17, 168, 205, .12), rgba(17, 168, 205, .03));
+  background: linear-gradient(135deg, rgba(34, 211, 238, .12), rgba(34, 211, 238, .03));
 }
 .ta-summary p { margin: 0 0 .6rem; line-height: 1.7; }
 .ta-summary-meta { display: flex; flex-wrap: wrap; gap: .5rem; }
-.ta-summary-meta span { padding: .15rem .5rem; border-radius: 6px; background: rgba(17, 168, 205, .1); font-size: .78rem; }
+.ta-summary-meta span { padding: .15rem .5rem; border-radius: 6px; background: rgba(34, 211, 238, .1); font-size: .78rem; }
 .ta-budget { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; margin-top: 1rem; }
 .ta-budget div { padding: .7rem; border: 1px solid var(--borderColor); border-radius: 8px; }
 .ta-budget span { display: block; font-size: .75rem; opacity: .65; }
@@ -252,17 +252,17 @@ export default {
 .ta-budget .negative { color: #d9534f; }
 .ta-budget-detail { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .7rem; font-size: .82rem; opacity: .75; }
 .ta-days { margin-top: 1.25rem; }
-.ta-day { padding: .9rem 1rem; border-left: 3px solid #11a8cd; margin-bottom: 1rem; background: rgba(150, 150, 150, .04); }
+.ta-day { padding: .9rem 1rem; border-left: 3px solid var(--site-accent, #22d3ee); margin-bottom: 1rem; background: rgba(150, 150, 150, .04); }
 .ta-day-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem; margin-bottom: .6rem; }
 .ta-day-header span { font-size: .8rem; opacity: .6; }
-.ta-day-header em { margin-left: auto; font-style: normal; color: #11a8cd; font-size: .8rem; }
+.ta-day-header em { margin-left: auto; font-style: normal; color: var(--site-accent, #22d3ee); font-size: .8rem; }
 .ta-items { list-style: none; margin: 0; padding: 0; }
 .ta-item { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: .7rem; padding: .5rem 0; border-top: 1px dashed var(--borderColor); }
 .ta-item time { font-variant-numeric: tabular-nums; opacity: .7; font-size: .82rem; }
 .ta-item-body strong { display: block; font-size: .92rem; }
 .ta-item-body small { display: block; margin-top: .15rem; opacity: .6; font-size: .76rem; }
 .ta-item-body p { margin: .25rem 0 0; font-size: .8rem; opacity: .7; line-height: 1.5; }
-.ta-cost { white-space: nowrap; font-size: .8rem; color: #11a8cd; }
+.ta-cost { white-space: nowrap; font-size: .8rem; color: var(--site-accent, #22d3ee); }
 .ta-tips { margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 10px; background: rgba(150, 150, 150, .05); }
 .ta-tips h3 { margin: 0 0 .5rem; font-size: 1rem; }
 .ta-tips ul { margin: 0; padding-left: 1.2rem; }

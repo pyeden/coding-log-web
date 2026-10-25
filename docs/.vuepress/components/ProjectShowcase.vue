@@ -111,7 +111,7 @@ export default {
   margin-right: calc(50% - 50vw);
   margin-top: -1.4rem;
   overflow: hidden;
-  background: #05070f;
+  background: #060b16;
   color: #e5e7eb;
   isolation: isolate;
 }
