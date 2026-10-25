@@ -167,9 +167,69 @@ function scheduleTiltBinding () {
   [200, 600, 1200].forEach(delay => setTimeout(bindFeatureTilt, delay))
 }
 
+
+// 项目页等 comment:false 的页面偶尔会被评论组件误挂载（插件 afterEach 读到旧 frontmatter），这里兜底清理
+const COMMENT_DOM_SELECTORS = ['#vuepress-plugin-comment', '.gt-container']
+
+function installCommentGuard (router) {
+  if (window.__commentGuardInstalled__) return
+  window.__commentGuardInstalled__ = true
+
+  let allowed = true
+
+  const pageAllowsComment = path => {
+    try {
+      const app = document.querySelector('#app') && document.querySelector('#app').__vue__
+      const pages = (app && app.$site && app.$site.pages) || []
+      const page = pages.find(p => p.path === path)
+      const fm = page && page.frontmatter
+      if (!fm) return true
+      return fm.comment !== false && fm.comments !== false
+    } catch (e) {
+      return true
+    }
+  }
+
+  const purge = () => {
+    if (allowed) return
+    COMMENT_DOM_SELECTORS.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => el.remove())
+    })
+  }
+
+  const observer = new MutationObserver(mutations => {
+    if (allowed) return
+    mutations.forEach(m => {
+      m.addedNodes && m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return
+        const el = node
+        if (el.id === 'vuepress-plugin-comment' || el.classList.contains('gt-container')) {
+          el.remove()
+        } else if (el.querySelector && el.querySelector('#vuepress-plugin-comment, .gt-container')) {
+          el.querySelectorAll('#vuepress-plugin-comment, .gt-container').forEach(n => n.remove())
+        }
+      })
+    })
+  })
+
+  const start = () => {
+    observer.observe(document.body, { childList: true, subtree: true })
+  }
+  if (document.body) start()
+  else document.addEventListener('DOMContentLoaded', start)
+
+  router.afterEach(to => {
+    allowed = pageAllowsComment(to.path)
+    if (allowed) return
+    // 插件自带的 1s 延时与异步渲染，需要多次兜底
+    ;[0, 120, 600, 1200, 2200].forEach(ms => setTimeout(purge, ms))
+  })
+}
+
 export default ({ router }) => {
   if (typeof window === 'undefined') return
   installButtonFix()
+  installCommentGuard(router)
   scheduleTiltBinding()
   window.addEventListener('load', scheduleTiltBinding)
   router.afterEach(() => {
