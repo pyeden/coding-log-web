@@ -688,3 +688,34 @@ html body .footer
     max-width: none
     box-sizing: border-box
     padding: 2.5rem 0 2rem
+
+// ============================================================
+// 首页导航卡片：左右间隔对齐上下间隔（16px），banner 左右内边距 14.4px
+// ============================================================
+
+@media screen
+  html body .home-wrapper .banner .banner-conent
+    box-sizing: border-box
+    padding-left: 14.4px
+    padding-right: 14.4px
+
+  html body .home-wrapper .banner .features
+    justify-content: flex-start
+    gap: 16px
+
+  html body .theme-container .home-wrapper .banner .banner-conent .feature
+    flex: 0 0 calc((100% - 32px) / 3)
+    width: calc((100% - 32px) / 3)
+    max-width: calc((100% - 32px) / 3)
+
+  @media (max-width: 1024px)
+    html body .theme-container .home-wrapper .banner .banner-conent .feature
+      flex: 0 0 calc((100% - 16px) / 2)
+      width: calc((100% - 16px) / 2)
+      max-width: calc((100% - 16px) / 2)
+
+  @media (max-width: 719px)
+    html body .theme-container .home-wrapper .banner .banner-conent .feature
+      flex: 1 1 100%
+      width: 100%
+      max-width: 100%
