@@ -327,26 +327,8 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         },
       },
     ],
-    [
-      'vuepress-plugin-comment', // 评论
-      {
-        choosen: 'gitalk',
-        options: {
-          clientID: 'Ov23lil3I40qF8UOkjvm',
-          clientSecret: '19b0c32014c16ecf620dd0737697c55f069dc063',
-          repo: 'coding-log-web-comments', // GitHub 仓库
-          owner: 'pyeden', // GitHub仓库所有者
-          admin: ['pyeden'], // 对仓库有写权限的人
-          // distractionFreeMode: true,
-          pagerDirection: 'last', // 'first'正序 | 'last'倒序
-          id: '<%- (frontmatter.permalink || frontmatter.to.path).slice(-16) %>', //  页面的唯一标识,长度不能超过50
-          title: '「评论」<%- frontmatter.title %>', // GitHub issue 的标题
-          labels: ['Gitalk', 'Comment'], // GitHub issue 的标签
-          body:
-            '页面：<%- window.location.origin + (frontmatter.to.path || window.location.pathname) %>', // GitHub issue 的内容
-        },
-      },
-    ],
+    // 评论已切换到 Artalk（见 enhanceApp.js 的 mountArtalk），不再使用 vuepress-plugin-comment。
+    // 旧的 Gitalk 配置已停用，账号信息保留在 git 历史中。
     [
       '@vuepress/last-updated', // "上次更新"时间格式
       {
@@ -362,6 +344,11 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     proxy: {
       '/api/travel': {
         target: 'http://127.0.0.1:8090',
+        changeOrigin: true,
+      },
+      // Artalk 评论后端（nginx 未加 /api 反代时也能先跑通）
+      '/api': {
+        target: 'http://127.0.0.1:23366',
         changeOrigin: true,
       },
     },

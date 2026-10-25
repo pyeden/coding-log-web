@@ -1,3 +1,6 @@
+import Artalk from 'artalk'
+import 'artalk/dist/Artalk.css'
+
 // 修复 vdoing 悬浮按钮（返回顶部 / 去评论）在固定滚动容器下的行为
 // 站点把滚动交给了 .theme-container（position:fixed + overflow-y:auto），
 // 而主题组件用的是 window.scrollTo / window.pageYOffset，所以点击没有反应。
@@ -240,15 +243,78 @@ function installCommentGuard (router) {
   })
 }
 
+
+// ============================================================
+// Artalk 评论：文章页挂载，切换路由时销毁重建
+// ============================================================
+const ARTALK_SITE = '三木 vlog'
+let artalkInstance = null
+
+const pageAllowsComments = path => {
+  try {
+    const app = document.querySelector('#app') && document.querySelector('#app').__vue__
+    const pages = (app && app.$site && app.$site.pages) || []
+    const page = pages.find(p => p.path === path)
+    const fm = page && page.frontmatter
+    if (!fm) return false
+    return fm.comment !== false && fm.comments !== false && fm.article !== false && fm.home !== true
+  } catch (e) {
+    return false
+  }
+}
+
+const artalkMode = () =>
+  document.body.classList.contains('theme-mode-light') ? 'light' : 'dark'
+
+const destroyArtalk = () => {
+  if (artalkInstance) {
+    try {
+      artalkInstance.destroy()
+    } catch (e) {}
+    artalkInstance = null
+  }
+  const old = document.getElementById('artalk-comments')
+  if (old && old.parentNode) old.parentNode.removeChild(old)
+}
+
+const mountArtalk = path => {
+  destroyArtalk()
+  if (!pageAllowsComments(path)) return
+  const host = document.querySelector('.theme-vdoing-content')
+  if (!host) return
+  const el = document.createElement('div')
+  el.id = 'artalk-comments'
+  host.appendChild(el)
+  artalkInstance = new Artalk({
+    el: '#artalk-comments',
+    server: window.location.origin,
+    site: ARTALK_SITE,
+    darkMode: artalkMode(),
+  })
+}
+
+const watchArtalkTheme = () => {
+  const obs = new MutationObserver(() => {
+    if (artalkInstance && typeof artalkInstance.setDarkMode === 'function') {
+      artalkInstance.setDarkMode(artalkMode())
+    }
+  })
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+}
+
 export default ({ router }) => {
   if (typeof window === 'undefined') return
   installButtonFix()
   installCommentGuard(router)
   scheduleTiltBinding()
+  watchArtalkTheme()
+  setTimeout(() => mountArtalk(router.currentRoute.path), 700)
+  window.addEventListener('load', () => setTimeout(() => mountArtalk(router.currentRoute.path), 500))
   window.addEventListener('load', scheduleTiltBinding)
   router.afterEach(() => {
     setTimeout(syncCommentButton, 600)
     setTimeout(syncCommentButton, 2000)
     scheduleTiltBinding()
+    setTimeout(() => mountArtalk(to.path), 500)
   })
 }
