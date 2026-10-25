@@ -137,8 +137,11 @@ function bindFeatureTilt () {
       }
       rx = 0
       ry = 0
-      el.style.setProperty('--rx', '0deg')
-      el.style.setProperty('--ry', '0deg')
+      // 移除内联变量，回落到 CSS 里的静态 3D 角度
+      el.style.removeProperty('--rx')
+      el.style.removeProperty('--ry')
+      el.style.removeProperty('--mx')
+      el.style.removeProperty('--my')
     }
     el.addEventListener('pointerenter', () => el.classList.add('is-tilting'))
     el.addEventListener('pointermove', e => {

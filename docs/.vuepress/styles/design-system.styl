@@ -851,3 +851,29 @@ html body .footer
     &.is-tilting
       transition: transform .12s linear, box-shadow .3s ease, border-color .3s ease
       will-change: transform
+
+// ============================================================
+// 首页卡片：静态 3D 姿态（无悬浮时也有纵深）
+// ============================================================
+
+@media screen
+  html body .theme-container .home-wrapper .banner .banner-conent .feature
+    overflow: visible
+    --rx: 1.1deg
+    --ry: 0deg
+    transform: perspective(1200px) rotateX(var(--rx, 1.1deg)) rotateY(var(--ry, 0deg)) translate3d(0, var(--lift, 0px), 0) scale(var(--scale, 1))
+    transform-style: preserve-3d
+
+    // 左中右三列给不同朝向，静态就有层次
+    &:nth-child(3n + 1)
+      --ry: 1.6deg
+    &:nth-child(3n + 3)
+      --ry: -1.6deg
+
+    // 卡内元素分层，倾斜时产生视差
+    .feature-img
+      transform: translateZ(18px)
+    h2
+      transform: translateZ(10px)
+    p
+      transform: translateZ(5px)
