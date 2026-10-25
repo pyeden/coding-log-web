@@ -101,11 +101,77 @@ function installButtonFix () {
   window.addEventListener('load', boot)
 }
 
+
+// 首页卡片：指针跟随 3D 倾斜（仅 hover: hover + 精细指针 + 非 reduced-motion）
+const TILT_SELECTOR = '.home-wrapper .banner .feature'
+const TILT_MAX = 6
+
+const tiltAllowed = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+  !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function bindFeatureTilt () {
+  if (!tiltAllowed()) return 0
+  let bound = 0
+  document.querySelectorAll(TILT_SELECTOR).forEach(el => {
+    if (el.__tiltBound) return
+    el.__tiltBound = true
+    bound++
+    let raf = 0
+    let rx = 0
+    let ry = 0
+    let mx = 50
+    let my = 50
+    const apply = () => {
+      raf = 0
+      el.style.setProperty('--rx', rx.toFixed(2) + 'deg')
+      el.style.setProperty('--ry', ry.toFixed(2) + 'deg')
+      el.style.setProperty('--mx', mx.toFixed(1) + '%')
+      el.style.setProperty('--my', my.toFixed(1) + '%')
+    }
+    const reset = () => {
+      if (raf) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      }
+      rx = 0
+      ry = 0
+      el.style.setProperty('--rx', '0deg')
+      el.style.setProperty('--ry', '0deg')
+    }
+    el.addEventListener('pointerenter', () => el.classList.add('is-tilting'))
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect()
+      const px = (e.clientX - r.left) / r.width
+      const py = (e.clientY - r.top) / r.height
+      rx = (0.5 - py) * TILT_MAX * 2
+      ry = (px - 0.5) * TILT_MAX * 2
+      mx = px * 100
+      my = py * 100
+      if (!raf) raf = requestAnimationFrame(apply)
+    })
+    el.addEventListener('pointerleave', () => {
+      el.classList.remove('is-tilting')
+      reset()
+    })
+    window.addEventListener('scroll', reset, { passive: true })
+  })
+  return bound
+}
+
+function scheduleTiltBinding () {
+  [200, 600, 1200].forEach(delay => setTimeout(bindFeatureTilt, delay))
+}
+
 export default ({ router }) => {
   if (typeof window === 'undefined') return
   installButtonFix()
+  scheduleTiltBinding()
+  window.addEventListener('load', scheduleTiltBinding)
   router.afterEach(() => {
     setTimeout(syncCommentButton, 600)
     setTimeout(syncCommentButton, 2000)
+    scheduleTiltBinding()
   })
 }

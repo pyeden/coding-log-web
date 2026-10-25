@@ -811,3 +811,43 @@ html body .footer
     html body .navbar::after,
     html body .footer::before
       animation: none
+
+// ============================================================
+// 首页卡片：指针跟随 3D 悬浮（B 方案试点）
+// ============================================================
+
+@media screen
+  html body .theme-container .home-wrapper .banner .banner-conent .feature
+    position: relative
+    overflow: hidden
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, var(--lift, 0px), 0) scale(var(--scale, 1))
+    transform-style: preserve-3d
+    transition: transform .35s cubic-bezier(.22, .61, .36, 1), box-shadow .3s ease, border-color .3s ease
+
+    &::after
+      content: ''
+      position: absolute
+      inset: 0
+      border-radius: inherit
+      pointer-events: none
+      opacity: 0
+      transform: translateZ(1px)
+      transition: opacity .3s ease
+      background-image: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--site-glow), transparent 70%)
+
+    &:hover
+      --lift: -4px
+      --scale: 1.01
+      border-color: rgba(34, 211, 238, .42)
+      box-shadow: 0 24px 55px var(--site-shadow), 0 0 45px var(--site-glow)
+
+      &::after
+        opacity: .9
+
+    &:active
+      --lift: -1px
+      --scale: .997
+
+    &.is-tilting
+      transition: transform .12s linear, box-shadow .3s ease, border-color .3s ease
+      will-change: transform
