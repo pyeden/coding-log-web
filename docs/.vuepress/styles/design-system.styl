@@ -660,33 +660,20 @@ html body .footer
 // ============================================================
 
 @media screen
-  html body .theme-container.projects-page
-    padding: 0
-
-  html body .theme-container.projects-page .page
-    padding: 0
-
+  // 只清掉面板的背景/阴影/圆角，保留主题原有的内容列宽度与内边距
   html body .theme-container.projects-page .theme-vdoing-wrapper
     background-color: transparent
     background-image: none
     box-shadow: none
     border-radius: 0
-    padding: 0
-    margin: 0
-    max-width: none
-    width: 100%
 
-  html body .theme-container.projects-page .theme-vdoing-content
-    max-width: none
-    width: 100%
-
-  // 组件原本用 100vw + 负外边距做“通栏”，会左右各差几像素并被裁切
+  // 组件原本用 100vw + 负外边距做“通栏”，现在收回到父内容列内
   html body .theme-container.projects-page .ps
     width: 100%
     margin: 0
 
-  // 内层宽度回归站点内容列（880px），左右留白由 padding 统一控制
+  // 左右留白由父级 .theme-vdoing-wrapper 提供，内层不再额外加宽
   html body .theme-container.projects-page .ps-inner
-    max-width: 880px
+    max-width: none
     box-sizing: border-box
-    padding: 3rem 2rem 2.5rem
+    padding: 2.5rem 0 2rem
