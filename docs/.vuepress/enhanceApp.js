@@ -125,6 +125,7 @@ function bindFeatureTilt () {
     let ry = 0
     let mx = 50
     let my = 50
+    let leaveTimer = 0
     const apply = () => {
       raf = 0
       el.style.setProperty('--rx', rx.toFixed(2) + 'deg')
@@ -145,20 +146,31 @@ function bindFeatureTilt () {
       el.style.removeProperty('--mx')
       el.style.removeProperty('--my')
     }
-    el.addEventListener('pointerenter', () => el.classList.add('is-tilting'))
+    el.addEventListener('pointerenter', () => {
+      clearTimeout(leaveTimer)
+      el.classList.add('is-tilting')
+    })
     el.addEventListener('pointermove', e => {
+      clearTimeout(leaveTimer)
       const r = el.getBoundingClientRect()
       const px = (e.clientX - r.left) / r.width
       const py = (e.clientY - r.top) / r.height
-      rx = (0.5 - py) * TILT_MAX * 2
-      ry = (px - 0.5) * TILT_MAX * 2
+      // 大卡按宽度收敛角度，避免倾斜后指针被"甩出"卡片导致反复重置
+      const w = el.offsetWidth || r.width
+      const maxDeg = Math.min(TILT_MAX, Math.max(2.5, (TILT_MAX * 360) / w))
+      rx = (0.5 - py) * maxDeg * 2
+      ry = (px - 0.5) * maxDeg * 2
       mx = px * 100
       my = py * 100
       if (!raf) raf = requestAnimationFrame(apply)
     })
     el.addEventListener('pointerleave', () => {
-      el.classList.remove('is-tilting')
-      reset()
+      // 卡片旋转后指针可能瞬间落到盒外，延迟复位避免"卡在一个角度"
+      clearTimeout(leaveTimer)
+      leaveTimer = setTimeout(() => {
+        el.classList.remove('is-tilting')
+        reset()
+      }, 90)
     })
     window.addEventListener('scroll', reset, { passive: true })
   })
