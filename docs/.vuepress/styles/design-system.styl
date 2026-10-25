@@ -197,6 +197,15 @@ body .search-box
       background: transparent
       padding: 0
       color: inherit
+  div[class*="language-"]
+    border: 1px solid var(--site-border)
+    border-radius: 12px
+    background: var(--codeBg)
+    box-shadow: 0 10px 28px rgba(0,0,0,.18)
+    pre
+      border: none
+      border-radius: 0
+      background: transparent
   img
     border-radius: 10px
 
@@ -240,7 +249,8 @@ body .search-box
     background:
       radial-gradient(700px circle at 12% 18%, rgba(34,211,238,.16), transparent 55%),
       radial-gradient(620px circle at 88% 8%, rgba(139,92,246,.14), transparent 52%),
-      linear-gradient(180deg, #07101f 0%, #060b16 100%)
+      linear-gradient(180deg, #07101f 0%, #060b16 100%) !important
+    background-color: #060b16 !important
     border-bottom: 1px solid var(--site-border)
     &::before
       content: ''
