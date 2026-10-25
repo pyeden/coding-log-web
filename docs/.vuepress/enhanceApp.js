@@ -69,10 +69,19 @@ function installButtonFix () {
       const comment = findComment()
       if (!comment) return
       scrollToElement(comment)
+      // gitalk 异步加载会撑高页面，稍后按需校正一次并聚焦输入框
       setTimeout(() => {
-        const field = comment.querySelector('textarea, input')
+        const sc = getScroller()
+        if (sc && sc !== document.scrollingElement) {
+          const rect = comment.getBoundingClientRect()
+          const box = sc.getBoundingClientRect()
+          const visible = rect.top < box.bottom - 120 && rect.bottom > box.top + 70
+          if (!visible) scrollToElement(comment)
+        }
+        const field =
+          comment.querySelector('textarea') || comment.querySelector('input')
         if (field) field.focus({ preventScroll: true })
-      }, 650)
+      }, 900)
     },
     true
   )
