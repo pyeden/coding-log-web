@@ -156,7 +156,7 @@ export default {
   transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .ps-card:hover {
-  transform: translateY(-3px);
+  /* 倾斜与位移交给站点 3D 规则，组件不再自己写 transform，避免覆盖 rotate */
   border-color: rgba(34, 211, 238, .35);
   box-shadow: 0 18px 44px var(--site-shadow);
 }
