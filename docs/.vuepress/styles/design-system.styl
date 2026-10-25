@@ -970,7 +970,8 @@ html body .footer
   html body .theme-container .ps-card
     border-radius: 16px
     background-image: none
-    box-shadow: 0 18px 40px var(--site-shadow)
+    // 与首页 .feature 最终计算值一致（V4 里是 rgba(0,0,0,.18)）
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .18)
     overflow: visible
 
     h2
