@@ -29,6 +29,31 @@ def _day_distance(points: List[Dict]) -> float:
         total += _distance_km(prev, cur)
     return total
 
+CLOSED_WEEKDAYS = {"周一": 0, "周二": 1, "周三": 2, "周四": 3, "周五": 4, "周六": 5, "周日": 6}
+
+
+def _is_closed(item: Dict, current: date) -> bool:
+    """根据 note 里的“周X闭馆/闭陵”判断当天是否闭馆。"""
+    note = item.get("note") or ""
+    for label, weekday in CLOSED_WEEKDAYS.items():
+        if (f"{label}闭馆" in note or f"{label}闭陵" in note) and current.weekday() == weekday:
+            return True
+    return False
+
+
+def _order_stops(stops: List[Dict]) -> List[Dict]:
+    """最近邻排序：景点 >= 3 个时减少折返（不足 3 个原样返回）。"""
+    if len(stops) < 3:
+        return stops
+    remaining = stops[:]
+    ordered = [remaining.pop(0)]
+    while remaining:
+        last = ordered[-1]
+        nxt = min(remaining, key=lambda item: _distance_km(last, item))
+        ordered.append(nxt)
+        remaining.remove(nxt)
+    return ordered
+
 
 def _profile_for(destination: str) -> Tuple[str, Dict]:
     destination = destination.strip()
@@ -69,12 +94,40 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
     foods = profile["foods"]
     payload = []
     tickets_per_day = []
+    used_names = set()
 
     for index in range(days):
         current = start + timedelta(days=index)
         today = pool[index * 2:index * 2 + 2]
         items = []
         tickets = 0
+        warnings = []
+
+        # 闭馆日检查：优先换一个未使用且当天开放的景点
+        fixed_today = []
+        for attraction in today:
+            if _is_closed(attraction, current):
+                replacement = next(
+                    (
+                        candidate
+                        for candidate in profile["attractions"]
+                        if candidate["name"] not in used_names
+                        and candidate["name"] not in [a["name"] for a in today]
+                        and not _is_closed(candidate, current)
+                    ),
+                    None,
+                )
+                if replacement:
+                    warnings.append(f"已避开闭馆：{attraction['name']} → {replacement['name']}")
+                    fixed_today.append(replacement)
+                    used_names.add(replacement["name"])
+                else:
+                    warnings.append(f"{attraction['name']} 当天闭馆，建议调整日期")
+                    fixed_today.append(attraction)
+            else:
+                fixed_today.append(attraction)
+            used_names.add(attraction["name"])
+        today = _order_stops(fixed_today)
 
         for slot, item in enumerate(today):
             time = "09:00" if slot == 0 else "14:00"
@@ -161,6 +214,7 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
             "items": items,
             "distance_km": round(distance, 1),
             "spend": spend,
+            "warnings": warnings,
         })
 
     return payload, tickets_per_day

@@ -139,6 +139,9 @@
             </div>
             <em>{{ day.theme }}</em>
           </header>
+          <div v-if="day.warnings && day.warnings.length" class="ta-day-warn">
+            <span v-for="text in day.warnings" :key="text">{{ text }}</span>
+          </div>
           <ul class="ta-items">
             <li v-for="item in day.items" :key="item.time + item.title" class="ta-item">
               <time>{{ item.time }}</time>
@@ -884,6 +887,15 @@ export default {
 .ta-day-date strong { font-size: .95rem; color: #f8fafc; font-variant-numeric: tabular-nums; }
 .ta-day-date span { font-size: .76rem; color: var(--site-muted, #8ea3b8); }
 .ta-day-header em { font-style: normal; font-size: .74rem; color: var(--site-accent-text, #67e8f9); }
+.ta-day-warn { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .55rem; }
+.ta-day-warn span {
+  padding: .16rem .55rem;
+  border: 1px solid rgba(245, 158, 11, .35);
+  border-radius: 6px;
+  background-color: rgba(245, 158, 11, .08);
+  color: #fbbf24;
+  font-size: .72rem;
+}
 .ta-items { list-style: none; margin: 0; padding: 0; }
 .ta-item {
   display: grid; grid-template-columns: 52px minmax(0, 1fr) auto;
