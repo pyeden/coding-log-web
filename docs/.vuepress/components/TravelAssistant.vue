@@ -211,6 +211,12 @@ function transformLng (lng, lat) {
   ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0
   return ret
 }
+function gcj02ToWgs84 (lng, lat) {
+  if (outOfChina(lng, lat)) return [lng, lat]
+  const [gLng, gLat] = wgs84ToGcj02(lng, lat)
+  return [lng * 2 - gLng, lat * 2 - gLat]
+}
+
 function wgs84ToGcj02 (lng, lat) {
   if (outOfChina(lng, lat)) return [lng, lat]
   let dLat = transformLat(lng - 105.0, lat - 35.0)
@@ -333,7 +339,43 @@ export default {
         mapStyle: dark ? 'amap://styles/darkblue' : 'amap://styles/normal',
       })
       this.amapOverlays = []
+      this.amap.on('click', event => this.handleMapClick(event))
       this.renderMap()
+    },
+    async handleMapClick (event) {
+      if (!event || !event.lnglat) return
+      const lng = Number(event.lnglat.getLng().toFixed(6))
+      const lat = Number(event.lnglat.getLat().toFixed(6))
+      await this.ensureGeocoder()
+      const address = await this.reverseGeocode(lng, lat)
+      const label = address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+      const box = document.createElement('div')
+      box.className = 'ta-map-pick'
+      box.innerHTML = `
+        <strong>${label}</strong>
+        <div class="ta-map-pick-meta">${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+        <div class="ta-map-pick-actions">
+          <button type="button" data-act="origin">设为出发点</button>
+          <button type="button" data-act="dest">设为目的地</button>
+        </div>`
+      const info = new window.AMap.InfoWindow({
+        content: box,
+        offset: new window.AMap.Pixel(0, -12),
+      })
+      info.open(this.amap, [lng, lat])
+      box.querySelector('[data-act="origin"]').addEventListener('click', () => {
+        const [wLng, wLat] = gcj02ToWgs84(lng, lat)
+        this.form.origin = address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        this.form.origin_lng = Number(wLng.toFixed(6))
+        this.form.origin_lat = Number(wLat.toFixed(6))
+        this.error = ''
+        info.close()
+      })
+      box.querySelector('[data-act="dest"]').addEventListener('click', () => {
+        this.form.destination = address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        this.error = ''
+        info.close()
+      })
     },
     initLeaflet () {
       this.provider = 'leaflet'
@@ -713,41 +755,58 @@ export default {
         }
       }
     },
-    locateOrigin () {
+    ensureGeocoder () {
+      if (this._geocoder) return Promise.resolve(this._geocoder)
+      return new Promise(resolve => {
+        if (!window.AMap) return resolve(null)
+        window.AMap.plugin(['AMap.Geocoder'], () => {
+          this._geocoder = new window.AMap.Geocoder({})
+          resolve(this._geocoder)
+        })
+      })
+    },
+    reverseGeocode (lng, lat) {
+      return new Promise(resolve => {
+        if (!this._geocoder) return resolve('')
+        this._geocoder.getAddress([lng, lat], (status, result) => {
+          if (status === 'complete' && result.regeocode && result.regeocode.formattedAddress) {
+            resolve(result.regeocode.formattedAddress)
+          } else {
+            resolve('')
+          }
+        })
+      })
+    },
+    async locateOrigin () {
       if (!navigator.geolocation) {
         this.error = '当前浏览器不支持定位，请手动填写出发地。'
         return
       }
       this.locating = true
       this.error = ''
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lng = pos.coords.longitude
-          const lat = pos.coords.latitude
-          this.form.origin_lng = Number(lng.toFixed(6))
-          this.form.origin_lat = Number(lat.toFixed(6))
-          if (window.AMap) {
-            const [gLng, gLat] = wgs84ToGcj02(lng, lat)
-            const geocoder = new window.AMap.Geocoder({})
-            geocoder.getAddress([gLng, gLat], (status, result) => {
-              if (status === 'complete' && result.regeocode && result.regeocode.formattedAddress) {
-                this.form.origin = result.regeocode.formattedAddress
-              } else if (!this.form.origin) {
-                this.form.origin = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-              }
-              this.locating = false
-            })
-          } else {
-            this.form.origin = this.form.origin || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-            this.locating = false
-          }
-        },
-        err => {
-          this.locating = false
-          this.error = `定位失败：${err.message || '请检查定位权限'}，可手动填写出发地。`
-        },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-      )
+      try {
+        await this.ensureGeocoder()
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          })
+        })
+        const lng = Number(position.coords.longitude.toFixed(6))
+        const lat = Number(position.coords.latitude.toFixed(6))
+        this.form.origin_lng = lng
+        this.form.origin_lat = lat
+        const [gLng, gLat] = wgs84ToGcj02(lng, lat)
+        const address = await this.reverseGeocode(gLng, gLat)
+        this.form.origin = address || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+        if (this.amap) this.amap.setZoomAndCenter(13, [gLng, gLat])
+      } catch (err) {
+        const message = err && (err.message || err.msg)
+        this.error = `定位失败：${message || '请检查定位权限'}，可手动填写或点击地图选点。`
+      } finally {
+        this.locating = false
+      }
     },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
@@ -847,6 +906,21 @@ export default {
   font-size: .76rem; color: var(--site-muted, #8ea3b8);
   background-image: linear-gradient(180deg, transparent, rgba(4, 8, 16, .72));
 }
+:deep(.ta-map-pick) { min-width: 200px; font-size: 12px; line-height: 1.5; }
+:deep(.ta-map-pick strong) { display: block; color: #f8fafc; font-size: 12px; }
+:deep(.ta-map-pick-meta) { color: var(--site-muted, #8ea3b8); margin: 2px 0 8px; font-size: 11px; }
+:deep(.ta-map-pick-actions) { display: flex; gap: 6px; }
+:deep(.ta-map-pick-actions button) {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid rgba(34, 211, 238, .45);
+  border-radius: 6px;
+  background: rgba(34, 211, 238, .1);
+  color: var(--site-accent-text, #67e8f9);
+  font-size: 11px;
+  cursor: pointer;
+}
+:deep(.ta-map-pick-actions button:hover) { background: rgba(34, 211, 238, .2); }
 .ta-map-legend {
   display: flex; flex-wrap: wrap; gap: .45rem .85rem;
   padding: .6rem .9rem;
