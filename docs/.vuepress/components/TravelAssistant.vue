@@ -133,7 +133,8 @@
             <div class="ta-day-date">
               <strong>{{ day.date }}</strong>
               <span>{{ day.weekday }}</span>
-              <b v-if="day.distance_km" class="ta-day-stat">{{ day.distance_km }} km</b>
+              <b v-if="day.route_km" class="ta-day-stat">驾车 {{ day.route_km }} km · {{ day.route_min }} 分钟</b>
+              <b v-else-if="day.distance_km" class="ta-day-stat">{{ day.distance_km }} km</b>
               <b v-if="day.spend" class="ta-day-stat">≈ ¥{{ money(day.spend) }}</b>
             </div>
             <em>{{ day.theme }}</em>
@@ -477,6 +478,60 @@ export default {
         this.dayBounds[dayIndex] = dayLatLngs
       })
       if (this.amapOverlays.length) this.amap.setFitView(this.amapOverlays, false, [40, 40, 40, 40], 14)
+      this.enrichRoutes()
+    },
+    ensureDriving () {
+      if (this._driving) return Promise.resolve(this._driving)
+      return new Promise(resolve => {
+        window.AMap.plugin(['AMap.Driving'], () => {
+          this._driving = new window.AMap.Driving({
+            policy: window.AMap.DrivingPolicy.LEAST_TIME,
+            hideMarkers: true,
+            showTraffic: false,
+          })
+          resolve(this._driving)
+        })
+      })
+    },
+    routeBetween (from, to) {
+      return new Promise(resolve => {
+        this._driving.search(from, to, (status, result) => {
+          if (status === 'complete' && result.routes && result.routes[0]) {
+            resolve({ distance: result.routes[0].distance, time: result.routes[0].time })
+          } else {
+            resolve(null)
+          }
+        })
+      })
+    },
+    async enrichRoutes () {
+      if (!window.AMap || !this.result) return
+      await this.ensureDriving()
+      for (let i = 0; i < this.result.days.length; i++) {
+        const day = this.result.days[i]
+        const stops = day.items
+          .filter(item => typeof item.lat === 'number' && typeof item.lng === 'number')
+          .map(item => {
+            const [lng, lat] = wgs84ToGcj02(item.lng, item.lat)
+            return [lng, lat]
+          })
+        if (stops.length < 2) continue
+        let meters = 0
+        let seconds = 0
+        let ok = false
+        for (let k = 0; k < stops.length - 1; k++) {
+          const seg = await this.routeBetween(stops[k], stops[k + 1])
+          if (seg) {
+            meters += seg.distance
+            seconds += seg.time
+            ok = true
+          }
+        }
+        if (ok) {
+          this.$set(day, 'route_km', Math.round(meters / 100) / 10)
+          this.$set(day, 'route_min', Math.max(1, Math.round(seconds / 60)))
+        }
+      }
     },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
