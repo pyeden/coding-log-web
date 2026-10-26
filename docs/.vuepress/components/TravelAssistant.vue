@@ -11,7 +11,14 @@
       </div>
     </header>
 
-    <div class="ta-map-wrap">
+    <div ref="mapWrap" class="ta-map-wrap" :class="{ 'is-fullscreen': mapFullscreen }">
+      <button
+        class="ta-map-fs"
+        type="button"
+        :aria-label="mapFullscreen ? '退出全屏' : '全屏查看'"
+        :title="mapFullscreen ? '退出全屏（Esc）' : '全屏查看'"
+        @click="toggleMapFullscreen"
+      >{{ mapFullscreen ? '✕' : '⛶' }}</button>
       <div ref="mapEl" class="ta-map"></div>
       <div v-if="!result" class="ta-map-empty">生成行程后，这里会显示每天的路线与景点位置</div>
       <div v-else class="ta-map-legend">
@@ -256,6 +263,7 @@ export default {
       result: null,
       copied: false,
       map: null,
+      mapFullscreen: false,
       provider: 'leaflet',
       mapLayerGroup: null,
       dayBounds: [],
@@ -279,8 +287,11 @@ export default {
   mounted () {
     this.prefillFromQuery()
     this.initMap()
+    document.addEventListener('keydown', this.onMapKeydown)
   },
   beforeDestroy () {
+    document.removeEventListener('keydown', this.onMapKeydown)
+    document.body.style.overflow = ''
     if (this.map) {
       this.map.remove()
       this.map = null
@@ -319,6 +330,20 @@ export default {
         script.onerror = reject
         document.head.appendChild(script)
       })
+    },
+    toggleMapFullscreen () {
+      this.mapFullscreen = !this.mapFullscreen
+      document.body.style.overflow = this.mapFullscreen ? 'hidden' : ''
+      setTimeout(() => {
+        if (this.amap && typeof this.amap.resize === 'function') this.amap.resize()
+        if (this.map && typeof this.map.invalidateSize === 'function') this.map.invalidateSize()
+      }, 260)
+    },
+    onMapKeydown (event) {
+      if (event.key === 'Escape' && this.mapFullscreen) {
+        event.preventDefault()
+        this.toggleMapFullscreen()
+      }
     },
     firstStop () {
       const day = this.result && this.result.days && this.result.days[0]
@@ -900,6 +925,41 @@ export default {
   box-shadow: 0 12px 32px var(--site-shadow, rgba(0,0,0,.38));
 }
 .ta-map { height: 340px; width: 100%; background: rgba(8, 14, 24, .6); }
+.ta-map-fs {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 600;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--site-border, rgba(120,160,200,.2));
+  border-radius: 9px;
+  background-color: rgba(6, 11, 22, .78);
+  color: var(--site-text, #dbe7f3);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease;
+}
+.ta-map-fs:hover { border-color: rgba(34, 211, 238, .5); color: var(--site-accent-text, #67e8f9); background-color: rgba(34, 211, 238, .12); }
+.ta-map-wrap.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bodyBg, #04070f);
+}
+.ta-map-wrap.is-fullscreen .ta-map { flex: 1 1 auto; height: auto; min-height: 0; }
+.ta-map-wrap.is-fullscreen .ta-map-legend { flex: none; }
+
 .ta-map-empty {
   position: absolute; inset: auto 0 0 0;
   padding: .6rem .9rem;
