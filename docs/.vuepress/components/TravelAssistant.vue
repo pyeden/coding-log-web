@@ -11,6 +11,17 @@
       </div>
     </header>
 
+    <div class="ta-map-wrap">
+      <div ref="mapEl" class="ta-map"></div>
+      <div v-if="!result" class="ta-map-empty">生成行程后，这里会显示每天的路线与景点位置</div>
+      <div v-else class="ta-map-legend">
+        <span v-for="(day, i) in result.days" :key="day.date">
+          <i :style="{ background: dayColors[i % dayColors.length] }"></i>{{ day.date }} · {{ day.theme }}
+        </span>
+        <em v-if="!hasCoords">该目的地暂无坐标数据</em>
+      </div>
+    </div>
+
     <form class="ta-form" @submit.prevent="submit">
       <div class="ta-fields">
         <label class="ta-field ta-field-wide">
@@ -144,6 +155,9 @@
 </template>
 
 <script>
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
 const pad = value => String(value).padStart(2, '0')
 const formatDate = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 
@@ -168,9 +182,16 @@ export default {
       error: '',
       result: null,
       copied: false,
+      map: null,
+      mapLayerGroup: null,
+      dayColors: ['#22d3ee', '#8b5cf6', '#f472b6', '#a3e635', '#fbbf24', '#fb7185'],
     }
   },
   computed: {
+    hasCoords () {
+      if (!this.result) return false
+      return this.result.days.some(day => day.items.some(item => item.lat && item.lng))
+    },
     usagePercent () {
       if (!this.result) return 0
       const { total, budget } = this.result.budget
@@ -178,7 +199,81 @@ export default {
       return Math.min(100, Math.max(0, Math.round((total / budget) * 100)))
     },
   },
+  mounted () {
+    this.initMap()
+  },
+  beforeDestroy () {
+    if (this.map) {
+      this.map.remove()
+      this.map = null
+    }
+  },
+  watch: {
+    result () {
+      this.$nextTick(() => this.renderMap())
+    },
+  },
   methods: {
+    initMap () {
+      if (!this.$refs.mapEl || this.map) return
+      this.map = L.map(this.$refs.mapEl, {
+        center: [34.5, 108.9],
+        zoom: 4,
+        zoomControl: true,
+        scrollWheelZoom: false,
+        attributionControl: true,
+      })
+      const dark = !document.body.classList.contains('theme-mode-light') && !document.body.classList.contains('theme-mode-read')
+      const tile = dark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      L.tileLayer(tile, {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      }).addTo(this.map)
+      this.mapLayerGroup = L.layerGroup().addTo(this.map)
+      this.renderMap()
+    },
+    renderMap () {
+      if (!this.map || !this.mapLayerGroup) return
+      this.mapLayerGroup.clearLayers()
+      if (!this.result) return
+      const bounds = []
+      this.result.days.forEach((day, dayIndex) => {
+        const color = this.dayColors[dayIndex % this.dayColors.length]
+        const points = day.items
+          .filter(item => typeof item.lat === 'number' && typeof item.lng === 'number')
+          .map(item => ({ item, latlng: [item.lat, item.lng] }))
+        if (!points.length) return
+        if (points.length > 1) {
+          L.polyline(points.map(p => p.latlng), {
+            color,
+            weight: 3,
+            opacity: 0.75,
+            dashArray: '6 8',
+            lineCap: 'round',
+          }).addTo(this.mapLayerGroup)
+        }
+        points.forEach(({ item, latlng }, index) => {
+          const icon = L.divIcon({
+            className: 'ta-map-pin',
+            html: `<span style="--pin:${color}">${index + 1}</span>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+          })
+          const popup = `<strong>${item.time} ${item.title}</strong><br><small>${item.type}${item.duration && item.duration !== '—' ? ' · ' + item.duration : ''}</small>${item.cost ? `<br><small>¥${item.cost}/人</small>` : ''}`
+          L.marker(latlng, { icon }).bindPopup(popup).addTo(this.mapLayerGroup)
+          bounds.push(latlng)
+        })
+      })
+      if (!bounds.length) return
+      if (bounds.length === 1) {
+        this.map.setView(bounds[0], 13)
+      } else {
+        this.map.fitBounds(bounds, { padding: [36, 36], maxZoom: 13 })
+      }
+      setTimeout(() => this.map && this.map.invalidateSize(), 200)
+    },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
       if (index >= 0) this.form.preferences.splice(index, 1)
@@ -261,6 +356,47 @@ export default {
   color: var(--site-text, var(--textColor));
 }
 .ta-hero { margin-bottom: 1.6rem; }
+.ta-map-wrap {
+  position: relative;
+  margin-bottom: 1.4rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16));
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: var(--site-card, rgba(13,24,41,.8));
+  box-shadow: 0 12px 32px var(--site-shadow, rgba(0,0,0,.38));
+}
+.ta-map { height: 340px; width: 100%; background: rgba(8, 14, 24, .6); }
+.ta-map-empty {
+  position: absolute; inset: auto 0 0 0;
+  padding: .6rem .9rem;
+  font-size: .76rem; color: var(--site-muted, #8ea3b8);
+  background-image: linear-gradient(180deg, transparent, rgba(4, 8, 16, .72));
+}
+.ta-map-legend {
+  display: flex; flex-wrap: wrap; gap: .45rem .85rem;
+  padding: .6rem .9rem;
+  border-top: 1px solid var(--site-border, rgba(120,160,200,.16));
+  font-size: .72rem; color: var(--site-muted, #8ea3b8);
+  background-color: rgba(255, 255, 255, .02);
+}
+.ta-map-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.ta-map-legend i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.ta-map-legend em { font-style: normal; color: #fda4af; }
+:deep(.ta-map-pin span) {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  font-size: .7rem; font-weight: 700; color: #04121a;
+  background: var(--pin, #22d3ee);
+  border: 2px solid rgba(4, 18, 26, .55);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pin, #22d3ee) 22%, transparent), 0 6px 14px rgba(0, 0, 0, .35);
+}
+:deep(.leaflet-container) { font: inherit; background: transparent; }
+:deep(.leaflet-popup-content-wrapper), :deep(.leaflet-popup-tip) {
+  background: var(--site-elevated, #111c30);
+  color: var(--site-text, #dbe7f3);
+  border: 1px solid var(--site-border, rgba(120,160,200,.16));
+}
+:deep(.leaflet-popup-content) { margin: .7rem .9rem; font-size: .78rem; line-height: 1.6; }
 .ta-kicker {
   display: inline-flex; align-items: center; gap: .5rem;
   margin: 0; font-size: .68rem; font-weight: 600;

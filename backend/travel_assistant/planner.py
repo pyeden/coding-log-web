@@ -68,6 +68,8 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
                 "duration": f"{item['duration']} 小时",
                 "cost": item["ticket"],
                 "note": f"{item['area']} · {item['note']}" if item.get("note") else item["area"],
+                "lat": item.get("lat"),
+                "lng": item.get("lng"),
             })
 
         if not today:

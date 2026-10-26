@@ -33,6 +33,7 @@
     "yamljs": "^0.3.0"
   },
   "dependencies": {
-    "artalk": "^2.10.1"
+    "artalk": "^2.10.1",
+    "leaflet": "^1.9.4"
   }
 }
