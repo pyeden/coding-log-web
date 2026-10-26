@@ -9,7 +9,7 @@
 
 1. 内容统一放 `docs/`；项目维护文档只放 `project-docs/`，禁止放进 `docs/`。
 2. 结构化栏目中的目录和 md 文件必须以 `数字.` 开头；`_posts/` 例外（无序号，仅一级分类子目录）。
-3. 不修改已发布文章的 `permalink`（会导致外链失效、Gitalk 评论丢失）。
+3. 不修改已发布文章的 `permalink`（会导致外链失效、Artalk 评论按页面路径错位）。
 4. 不手改 `docs/@pages/`、`docs/.vuepress/dist/`、`node_modules/`。
 5. `vdoing/` 是未启用的主题源码副本；改它不会生效，除非显式切换为本地主题。
 6. 不新增明文密钥/token/证书私钥；发现泄露只报告。
