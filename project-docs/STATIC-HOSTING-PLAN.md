@@ -150,14 +150,12 @@ VuePress 为每个路由生成独立 `index.html`，**不需要 SPA fallback**�
     # 带 hash 的构建资源，可长缓存
     location /assets/ {
         try_files $uri =404;
-        expires 30d;
         add_header Cache-Control "public, max-age=2592000, immutable";
     }
 
     # public 图片，中等缓存
     location /img/ {
         try_files $uri =404;
-        expires 7d;
         add_header Cache-Control "public, max-age=604800";
     }
 
@@ -193,6 +191,8 @@ VuePress 为每个路由生成独立 `index.html`，**不需要 SPA fallback**�
 ### 5.2 备选方案 B：launchd 守护静态服务器，nginx 不动
 
 仅当运维坚持保留「8080 进程模型」时使用。缺点：多一个进程、需自行处理缓存/压缩/404，不推荐。
+
+部署前先 `mkdir -p /Users/mac/coding-log-web/logs`。
 
 `~/Library/LaunchAgents/ai.openclaw.coding-log-web-static.plist`：
 
