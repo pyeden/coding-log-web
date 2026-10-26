@@ -170,31 +170,44 @@ tags:
 - 管理员账号/密码不在仓库；存放位置待确认，不要写入任何文件。
 - 切换深浅色时 `enhanceApp.js` 会同步 Artalk 主题，不要在页面里重复初始化。
 
-#### 6.1.1 服务守护（LaunchAgent，2026-10-26）
+#### 6.1.1 服务守护（LaunchDaemon，2026-10-26）
 
-当前线上由 `~/Library/LaunchAgents/ai.openclaw.artalk.plist` 守护，仓库副本在 `project-docs/ops/ai.openclaw.artalk.plist`（两份内容一致）。
+当前线上由 **LaunchDaemon** 守护，开机即启动，不依赖用户登录：
 
-- 纯 `KeepAlive` 方案实测不可靠：Artalk 被 `kill -TERM` 后 launchd 在 10s/30s 内没有拉起，`state = not running`、`last exit code = 0`，并出现 `pended nondemand spawn = inefficient` 节流。
-- 因此 plist 改为 **包装循环**：Artalk 退出后 3 秒自动重启；launchd 只负责守住 wrapper。实测 kill Artalk 子进程后 3–7 秒恢复，PID 变化、23366 重新监听。
-- 失败备份在 `/Users/mac/artalk/ai.openclaw.artalk.plist.failed-20261026-141905`，**不要复用**（纯 KeepAlive 版本）。
+- 安装位置：`/Library/LaunchDaemons/ai.openclaw.artalk.plist`（`root:wheel 644`）
+- 运行身份：`UserName=mac`、`GroupName=staff`；`WorkingDirectory=/Users/mac/artalk`
+- 命令：wrapper 循环，Artalk 退出后 3 秒自动重启：
 
-常用命令：
+  ```bash
+  while true; do cd /Users/mac/artalk && ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1; sleep 3; done
+  ```
+
+- 为什么不是纯 `KeepAlive`：实测 `kill -TERM` 后 launchd 不会拉起（`state = not running`、`pended nondemand spawn = inefficient`），所以用 wrapper 兜底；launchd 只守 wrapper。
+- 仓库副本：`project-docs/ops/ai.openclaw.artalk.daemon.plist` 与 `project-docs/ops/install-artalk-daemon.sh`。
+
+安装/重载（需要 root）：
 
 ```bash
-# 状态：应看到 state = running，pid 为 wrapper；子进程用 pgrep -x artalk
-launchctl print gui/$(id -u)/ai.openclaw.artalk
-pgrep -fl "artalk server"
-# 重载（bootstrap 报 EIO 时用 load 回退）
-launchctl bootout gui/$(id -u)/ai.openclaw.artalk
-launchctl load -w -S Aqua ~/Library/LaunchAgents/ai.openclaw.artalk.plist
-# 强制重启 wrapper
-launchctl kickstart -k gui/$(id -u)/ai.openclaw.artalk
-# 验证
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
+sudo bash project-docs/ops/install-artalk-daemon.sh
+# 或手动
+sudo launchctl bootout system/ai.openclaw.artalk 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/ai.openclaw.artalk.plist
+sudo launchctl kickstart -k system/ai.openclaw.artalk
 ```
 
-- 回滚到临时提交方式：`launchctl bootout gui/$(id -u)/ai.openclaw.artalk`，再执行 `launchctl submit -l ai.openclaw.artalk -- /bin/bash -c 'cd /Users/mac/artalk && exec ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1'`。
-- **限制**：LaunchAgent 在用户登录后运行；当前 Mac mini 未设置 `autoLoginUser`。若要求“重启无人登录也自动恢复”，需改用 LaunchDaemon（以 `mac` 用户运行）或开启自动登录；不要把 Artalk 配成 root 守护。
+状态/验证：
+
+```bash
+launchctl print system/ai.openclaw.artalk
+pgrep -fl "artalk server"
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
+curl -s -o /dev/null -w '%{http_code}\n' https://seres-ai.com/sidebar/
+sqlite3 /Users/mac/artalk/data/artalk.db 'select count(*) from comments;'
+```
+
+- 排障：`launchctl print` 的 `runs` 只在 wrapper 重启时增加；Artalk 子进程重启看 `pgrep -x artalk`。日志 `/Users/mac/artalk/server.log`。
+- 回滚到用户 LaunchAgent：`sudo launchctl bootout system/ai.openclaw.artalk`，移走 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`，把 `~/Library/LaunchAgents/ai.openclaw.artalk.plist.disabled-by-daemon-*` 恢复原名并 `launchctl load -w -S Aqua ...`。用户 LaunchAgent 仅在登录后运行。
+- 实测：kill Artalk 子进程后 3–7 秒恢复；2026-10-26 安装后 system 域 `state = running`。
 
 ### 6.2 旅行助手
 
