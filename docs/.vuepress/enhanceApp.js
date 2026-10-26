@@ -326,9 +326,34 @@ const watchArtalkTheme = () => {
   obs.observe(document.body, { attributes: true, attributeFilter: ['class'] })
 }
 
+// 首页右下角微信二维码卡片（仅首页显示）
+const WECHAT_CARD_ID = 'home-wechat-card'
+
+const mountWechatCard = path => {
+  if (!document.body) return
+  const existing = document.getElementById(WECHAT_CARD_ID)
+  const isHome = path === '/' || path === '/index.html'
+  if (!isHome) {
+    if (existing) existing.remove()
+    return
+  }
+  if (existing) return
+  const card = document.createElement('aside')
+  card.id = WECHAT_CARD_ID
+  card.className = 'home-wechat'
+  card.setAttribute('aria-label', '微信二维码')
+  card.innerHTML =
+    '<img src="/img/wechat-qr.jpg" alt="三木的微信二维码" loading="lazy">' +
+    '<p>微信扫码联系我</p>'
+  document.body.appendChild(card)
+}
+
 export default ({ router }) => {
   if (typeof window === 'undefined') return
   installButtonFix()
+  mountWechatCard(router.currentRoute.path)
+  window.addEventListener('load', () => mountWechatCard(router.currentRoute.path))
+  router.afterEach(to => mountWechatCard(to.path))
   installCommentGuard(router)
   scheduleTiltBinding()
   watchArtalkTheme()

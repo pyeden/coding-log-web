@@ -160,15 +160,6 @@
         ></div>
       </template>
     </MainLayout>
-
-    <aside class="home-wechat" aria-label="微信二维码">
-      <img
-        :src="$withBase('/img/wechat-qr.jpg')"
-        alt="三木的微信二维码"
-        loading="lazy"
-      />
-      <p>微信扫码联系我</p>
-    </aside>
   </div>
 </template>
 
@@ -551,39 +542,4 @@ export default {
   .main-wrapper
     @media (max-width 719px)
       margin-top -1px
-
-.home-wechat
-  position fixed
-  right 5.4rem
-  bottom 2.5rem
-  z-index 10
-  width 168px
-  padding .55rem .55rem .6rem
-  border 1px solid var(--site-border, rgba(120, 160, 200, .18))
-  border-radius 16px
-  background var(--site-card, rgba(13, 24, 41, .82))
-  box-shadow 0 18px 44px var(--site-shadow, rgba(0, 0, 0, .32))
-  backdrop-filter blur(10px)
-  transition transform .25s ease, box-shadow .25s ease
-  &:hover
-    transform translateY(-3px)
-    box-shadow 0 24px 56px var(--site-shadow, rgba(0, 0, 0, .4))
-  img
-    display block
-    width 100%
-    height auto
-    border-radius 11px
-  p
-    margin .45rem 0 0
-    font-size .72rem
-    line-height 1.4
-    text-align center
-    color var(--site-muted, #8ea3b8)
-  @media (max-width 719px)
-    right 4.5rem
-    bottom 1.5rem
-    width 118px
-    padding .4rem
-    p
-      font-size .64rem
 </style>
