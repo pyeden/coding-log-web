@@ -117,8 +117,23 @@ def _driving(origin: tuple[float, float], destination: tuple[float, float]) -> t
     return result
 
 
-def _enrich_routes(plan_data: dict) -> dict:
-    """用真实驾车路线替换直线距离（失败时保留原 distance_km）。"""
+def _geocode_origin(origin: str, city: str) -> tuple[float, float] | None:
+    """把出发地名称解析为 GCJ-02 坐标。"""
+    if not origin or not AMAP_WEB_KEY:
+        return None
+    try:
+        data = _amap_web_get("v3/geocode/geo", {"address": origin, "city": city})
+        geocodes = data.get("geocodes") or []
+        if data.get("status") == "1" and geocodes:
+            lng, lat = geocodes[0]["location"].split(",")
+            return float(lng), float(lat)
+    except Exception:
+        return None
+    return None
+
+
+def _enrich_routes(plan_data: dict, origin_name: str = "", origin_lng: float | None = None, origin_lat: float | None = None) -> dict:
+    """用真实驾车路线替换直线距离（失败时保留原 distance_km）；支持出发点 → 首站路段。"""
     if not AMAP_WEB_KEY:
         return plan_data
     for day in plan_data.get("days", []):
@@ -141,6 +156,36 @@ def _enrich_routes(plan_data: dict) -> dict:
         if ok:
             day["route_km"] = round(total_km, 1)
             day["route_min"] = total_min
+
+    # 出发点 → 第一天首站
+    day0 = (plan_data.get("days") or [None])[0]
+    first_stop = None
+    if day0:
+        for item in day0.get("items", []):
+            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float)):
+                first_stop = _wgs84_to_gcj02(item["lng"], item["lat"])
+                break
+
+    if origin_lng is not None and origin_lat is not None:
+        origin_point = _wgs84_to_gcj02(origin_lng, origin_lat)
+        origin_display = origin_name or "当前定位"
+    else:
+        origin_point = _geocode_origin(origin_name, plan_data.get("destination", "")) if origin_name else None
+        origin_display = origin_name
+
+    if origin_point:
+        plan_data["origin"] = {
+            "name": origin_display,
+            "lng": round(origin_point[0], 6),
+            "lat": round(origin_point[1], 6),
+        }
+        if first_stop:
+            leg = _driving(origin_point, first_stop)
+            if leg and day0:
+                plan_data["origin"]["to_first_km"] = leg[0]
+                plan_data["origin"]["to_first_min"] = leg[1]
+                day0["route_km"] = round((day0.get("route_km") or 0) + leg[0], 1)
+                day0["route_min"] = (day0.get("route_min") or 0) + leg[1]
     return plan_data
 
 
@@ -208,6 +253,6 @@ def plan(request: TravelRequest):
             travelers=request.travelers,
             preferences=request.preferences,
         )
-        return _enrich_routes(plan_data)
+        return _enrich_routes(plan_data, request.origin, request.origin_lng, request.origin_lat)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

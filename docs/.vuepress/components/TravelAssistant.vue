@@ -31,6 +31,15 @@
 
     <form class="ta-form" @submit.prevent="submit">
       <div class="ta-fields">
+        <label class="ta-field ta-field-wide ta-field-origin">
+          <span>出发地</span>
+          <div class="ta-origin-row">
+            <input v-model.trim="form.origin" type="text" placeholder="例如：北京站 / 当前位置" />
+            <button class="ta-locate" type="button" :disabled="locating" @click="locateOrigin">
+              {{ locating ? '定位中…' : '定位' }}
+            </button>
+          </div>
+        </label>
         <label class="ta-field ta-field-wide">
           <span>目的地</span>
           <input v-model.trim="form.destination" type="text" placeholder="城市或地区，例如 北京" required />
@@ -223,6 +232,9 @@ export default {
     return {
       form: {
         destination: '北京',
+        origin: '',
+        origin_lng: null,
+        origin_lat: null,
         start_date: formatDate(start),
         end_date: formatDate(end),
         budget: 3000,
@@ -231,6 +243,7 @@ export default {
       },
       preferenceOptions: ['历史', '自然', '美食', '艺术', '亲子', '购物', '夜景'],
       loading: false,
+      locating: false,
       error: '',
       result: null,
       copied: false,
@@ -489,6 +502,36 @@ export default {
         })
         this.dayBounds[dayIndex] = dayLatLngs
       })
+
+      // 出发地：单独标记 + 到首站的虚线
+      const origin = this.result.origin
+      if (origin) {
+        const position = [origin.lng, origin.lat]
+        const marker = new AMap.Marker({
+          position,
+          content: `<span class="ta-map-origin">出发</span>`,
+          offset: new AMap.Pixel(-20, -18),
+        })
+        marker.on('click', () => {
+          new AMap.InfoWindow({ content: `出发地：${origin.name || ''}`, offset: new AMap.Pixel(0, -18) }).open(this.amap, position)
+        })
+        this.amap.add(marker)
+        this.amapOverlays.push(marker)
+        const first = this.dayBounds[0] && this.dayBounds[0][0]
+        if (first) {
+          const leg = new AMap.Polyline({
+            path: [position, first],
+            strokeColor: '#fbbf24',
+            strokeWeight: 3,
+            strokeOpacity: 0.9,
+            strokeStyle: 'dashed',
+            lineJoin: 'round',
+          })
+          this.amap.add(leg)
+          this.amapOverlays.push(leg)
+        }
+      }
+
       if (this.amapOverlays.length && this._fitResult !== this.result) {
         this._fitResult = this.result
         // 等首屏瓦片完成后再 fit，避免频繁缩放取消瓦片请求（net::ERR_ABORTED）
@@ -555,6 +598,42 @@ export default {
           this.$set(day, 'route_min', Math.max(1, Math.round(seconds / 60)))
         }
       }
+    },
+    locateOrigin () {
+      if (!navigator.geolocation) {
+        this.error = '当前浏览器不支持定位，请手动填写出发地。'
+        return
+      }
+      this.locating = true
+      this.error = ''
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lng = pos.coords.longitude
+          const lat = pos.coords.latitude
+          this.form.origin_lng = Number(lng.toFixed(6))
+          this.form.origin_lat = Number(lat.toFixed(6))
+          if (window.AMap) {
+            const [gLng, gLat] = wgs84ToGcj02(lng, lat)
+            const geocoder = new window.AMap.Geocoder({})
+            geocoder.getAddress([gLng, gLat], (status, result) => {
+              if (status === 'complete' && result.regeocode && result.regeocode.formattedAddress) {
+                this.form.origin = result.regeocode.formattedAddress
+              } else if (!this.form.origin) {
+                this.form.origin = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+              }
+              this.locating = false
+            })
+          } else {
+            this.form.origin = this.form.origin || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+            this.locating = false
+          }
+        },
+        err => {
+          this.locating = false
+          this.error = `定位失败：${err.message || '请检查定位权限'}，可手动填写出发地。`
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      )
     },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
@@ -755,6 +834,32 @@ export default {
   transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
 .ta-field input:hover { border-color: rgba(34, 211, 238, .28); }
+.ta-origin-row { display: flex; gap: .5rem; }
+.ta-origin-row input { flex: 1; min-width: 0; }
+.ta-locate {
+  flex: none;
+  padding: .55rem .95rem;
+  border: 1px solid rgba(34, 211, 238, .4);
+  border-radius: 10px;
+  background-color: rgba(34, 211, 238, .08);
+  color: var(--site-accent-text, #67e8f9);
+  font: inherit;
+  font-size: .84rem;
+  cursor: pointer;
+  transition: background-color .2s ease, transform .2s ease;
+}
+.ta-locate:hover { background-color: rgba(34, 211, 238, .16); transform: translateY(-1px); }
+.ta-locate:disabled { opacity: .6; cursor: wait; }
+:deep(.ta-map-origin) {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fbbf24;
+  color: #1a1305;
+  font-size: 11px; font-weight: 700;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, .18), 0 6px 14px rgba(0, 0, 0, .35);
+}
+
 .ta-field input:focus {
   outline: none;
   border-color: var(--site-accent, #22d3ee);
