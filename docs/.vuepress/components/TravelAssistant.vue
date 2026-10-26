@@ -176,19 +176,19 @@
       </div>
 
       <div class="ta-actions">
-        <button class="ta-submit" type="submit" :disabled="loading">
-          <span v-if="loading" class="ta-spinner" aria-hidden="true"></span>
-          {{ loading ? '正在规划…' : '生成行程' }}
-        </button>
-        <span class="ta-hint">预计 1–3 秒返回，可反复调整后重新生成</span>
+        <button class="ta-submit" type="submit" :disabled="loading">生成行程</button>
       </div>
     </form>
 
-    <p v-if="mode === 'plan' && readOnly" class="ta-error">共享行程为只读模式，如需重新规划请打开新页面。</p>
-
-    <div v-if="loading" class="ta-skeleton" aria-hidden="true">
-      <div class="ta-skeleton-row" v-for="n in 3" :key="n"></div>
+    <div v-if="loading" class="ta-loading-mask" role="status" aria-live="polite">
+      <div class="ta-loading-card">
+        <span class="ta-loading-spinner" aria-hidden="true"></span>
+        <p class="ta-loading-title">{{ loadingTitle }}</p>
+        <p class="ta-loading-sub">{{ loadingSub }}</p>
+      </div>
     </div>
+
+    <p v-if="mode === 'plan' && readOnly" class="ta-error">共享行程为只读模式，如需重新规划请打开新页面。</p>
 
     <p v-if="error" class="ta-error" role="alert">{{ error }}</p>
 
@@ -583,6 +583,7 @@ export default {
         ],
       },
       loading: false,
+      loadingKind: 'plan',
       locating: false,
       error: '',
       result: null,
@@ -608,6 +609,12 @@ export default {
     }
   },
   computed: {
+    loadingTitle () {
+      return this.loadingKind === 'share' ? '正在加载共享行程' : '正在生成行程'
+    },
+    loadingSub () {
+      return this.loadingKind === 'share' ? '正在读取共享链接中的行程…' : '预计 1–3 秒返回，可反复调整后重新生成'
+    },
     modeTabs () {
       return [
         { key: 'plan', label: '规划', disabled: this.readOnly },
@@ -1298,6 +1305,7 @@ export default {
         this.error = '返程日期不能早于出发日期。'
         return
       }
+      this.loadingKind = 'plan'
       this.loading = true
       try {
         const response = await fetch('/api/travel/plan', {
@@ -1481,6 +1489,7 @@ export default {
       if (id) this.loadShare(id)
     },
     async loadShare (id) {
+      this.loadingKind = 'share'
       this.loading = true
       this.error = ''
       try {
@@ -1988,7 +1997,7 @@ export default {
   background-color: var(--site-glow, rgba(34,211,238,.14));
   box-shadow: 0 0 18px var(--site-glow, rgba(34,211,238,.14));
 }
-.ta-actions { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+.ta-actions { display: flex; justify-content: flex-end; align-items: center; gap: .9rem; flex-wrap: wrap; }
 .ta-submit {
   display: inline-flex; align-items: center; gap: .5rem;
   padding: .68rem 1.25rem;
@@ -2010,7 +2019,32 @@ export default {
   animation: ta-spin .8s linear infinite;
 }
 @keyframes ta-spin { to { transform: rotate(360deg); } }
-.ta-hint { font-size: .76rem; color: var(--site-muted, #8ea3b8); }
+.ta-loading-mask {
+  position: fixed; inset: 0; z-index: 3000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.2rem;
+  background: rgba(4, 8, 16, .62);
+  backdrop-filter: blur(4px);
+}
+.ta-loading-card {
+  display: flex; flex-direction: column; align-items: center; gap: .55rem;
+  min-width: 220px; max-width: 320px;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.2));
+  border-radius: 14px;
+  background: var(--site-elevated, #111c30);
+  color: var(--site-text, #dbe7f3);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  text-align: center;
+}
+.ta-loading-spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid rgba(34,211,238,.22);
+  border-top-color: var(--site-accent, #22d3ee);
+  animation: ta-spin .8s linear infinite;
+}
+.ta-loading-title { margin: 0; font-size: .95rem; color: #f8fafc; }
+.ta-loading-sub { margin: 0; font-size: .76rem; line-height: 1.6; color: var(--site-muted, #8ea3b8); }
 .ta-skeleton { margin-top: 1.2rem; display: grid; gap: .6rem; }
 .ta-skeleton-row {
   height: 64px; border-radius: 14px;
