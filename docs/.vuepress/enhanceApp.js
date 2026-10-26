@@ -336,7 +336,7 @@ export default ({ router }) => {
   setTimeout(() => mountArtalk(router.currentRoute.path), 800)
   window.addEventListener('load', () => mountArtalk(router.currentRoute.path))
   window.addEventListener('load', scheduleTiltBinding)
-  router.afterEach(() => {
+  router.afterEach(to => {
     setTimeout(syncCommentButton, 600)
     setTimeout(syncCommentButton, 2000)
     scheduleTiltBinding()
