@@ -269,7 +269,7 @@ stat -f '%Sp %Su:%Sg %N' /Users/mac
 ```bash
 # 选项 1：ACL，仅授予 nobody 穿越 /Users/mac 的权限（推荐，影响面最小）
 sudo chmod +a "nobody allow execute" /Users/mac
-ls -lde /Users/mac        # 应看到 nobody allow execute
+ls -lde /Users/mac        # 应看到 user:nobody allow search（目录上的 execute 显示为 search）
 
 # 选项 2：给 other 增加 execute（不做目录列举，但所有本地用户都可穿越）
 sudo chmod o+x /Users/mac
@@ -338,7 +338,7 @@ window._AMapSecurityConfig = { serviceHost: 'https://seres-ai.com/_AMapService' 
 - `AMAP_WEB_KEY`
 - `AMAP_WEB_SECRET`
 
-说明：当前 `config.ts` 只直接读取 `AMAP_JS_KEY`；`AMAP_SECURITY_CODE`、`AMAP_WEB_KEY`、`AMAP_WEB_SECRET` 由旅行助手后端（`backend/travel_assistant/app.py`）读取。为避免构建/运行环境漂移，构建机应同样具备四项。
+说明：构建期 `config.ts` 只直接读取 `AMAP_JS_KEY`；运行期旅行助手后端（`backend/travel_assistant/app.py`）会读取全部四项——`AMAP_JS_KEY` 与 `AMAP_SECURITY_CODE` 用于 `/_AMapService` 代理（`jscode`），`AMAP_WEB_KEY`/`AMAP_WEB_SECRET` 用于高德 Web 服务签名。为避免构建/运行环境漂移，构建机应同样具备四项。
 
 构建前检查（不打印密钥明文）：
 
@@ -355,8 +355,7 @@ done
 ```bash
 grep -rlq 'window.__AMAP_JS_KEY__=' docs/.vuepress/dist && echo "AMAP head injected"
 grep -rlq 'window._AMapSecurityConfig' docs/.vuepress/dist && echo "AMap security config injected"
-# 若输出文件名，说明存在空 key 注入，需要检查 .env 后重建
-grep -rl 'window.__AMAP_JS_KEY__=""' docs/.vuepress/dist || true
+# 若 dist 中没有任何 window.__AMAP_JS_KEY__= 命中，即视为缺 key（key 为空时整段 script 不会注入）
 ```
 
 ### 6.2 切换步骤
