@@ -189,9 +189,14 @@ VuePress 为每个路由生成独立 `index.html`，**不需要 SPA fallback**�
 
 ```nginx
     gzip on;
+    gzip_vary on;
+    gzip_proxied any;
     gzip_min_length 1024;
-    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_comp_level 5;
+    gzip_types text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml;
 ```
+
+> 已于 2026-10-26 在生产启用（见 §11 执行记录）。
 
 ### 5.2 备选方案 B：launchd 守护静态服务器，nginx 不动
 
@@ -565,3 +570,4 @@ sudo launchctl kickstart -k system/ai.openclaw.nginx
 - 验证：`/` 200、深层文章 200、`/projects/travel/` 200、未知路径 404、`/projects/travel` 301、`/assets/*` immutable、HTML no-cache、`/api/travel/health` 200、评论 6 条。
 - 8080 已重启作为回滚路径，计划保留 24–48h；回滚只需恢复 nginx 配置并 kickstart。
 - 偏离原方案：未执行 MacBook build + rsync，也未在切换前跑 8890 灰度；切换后已做等价的 HTTP 验证。浏览器交互（评论提交/地图）由 QA 补测。
+- gzip 已启用（2026-10-26）：`gzip on; gzip_vary on; gzip_proxied any; gzip_min_length 1024; gzip_comp_level 5`，覆盖 CSS/JS/JSON/XML/SVG；HTML 默认压缩。

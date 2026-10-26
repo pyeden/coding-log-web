@@ -7,7 +7,7 @@
 | 博客 dev server（回滚） | `ai.openclaw.codinglogweb.dev` | 8080 | `mac` | 公网已由 nginx 静态 release 提供；8080 仅回滚 |
 | 旅行助手 API | `ai.openclaw.travel-api` | 8090 | `mac` | `backend/travel_assistant/server.log` |
 | Artalk 评论 | `ai.openclaw.artalk` | 23366 | `mac` | `/Users/mac/artalk/server.log` |
-| nginx（静态主站） | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | root=`coding-log-web-releases/current/dist`；配置在 `nginx/server/*` |
+| nginx（静态主站） | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | root=`coding-log-web-releases/current/dist`；配置在 `nginx/server/*`；gzip on |
 | frpc 隧道 | `com.frpc.tunnel` | 80/443 隧道 | `mac` | `frp_0.68.0_darwin_amd64/frpc.launchd.log` |
 
 ## 常用命令

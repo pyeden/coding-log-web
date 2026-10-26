@@ -296,7 +296,7 @@ sudo launchctl kickstart -k system/ai.openclaw.travel-api
 | 博客 dev server（回滚） | `ai.openclaw.codinglogweb.dev` | 8080 | `mac` | `output.log`；公网已由 nginx 静态 release 提供 |
 | 旅行助手 API | `ai.openclaw.travel-api` | 8090 | `mac` | `backend/travel_assistant/server.log` |
 | Artalk 评论 | `ai.openclaw.artalk` | 23366 | `mac` | `/Users/mac/artalk/server.log` |
-| nginx（静态主站） | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | `/usr/local/etc/nginx/nginx.conf`；root=`coding-log-web-releases/current/dist` |
+| nginx（静态主站） | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | `/usr/local/etc/nginx/nginx.conf`；root=`coding-log-web-releases/current/dist`；gzip on |
 | frpc 隧道 | `com.frpc.tunnel` | 80/443 隧道 | `mac` | `frp_0.68.0_darwin_amd64/frpc.launchd.log` |
 
 - 旧用户 LaunchAgent 已改名并 `bootout`，文件形如 `~/Library/LaunchAgents/*.disabled-by-daemon-*`。
