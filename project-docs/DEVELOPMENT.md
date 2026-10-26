@@ -185,6 +185,32 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
 
 LaunchAgent 形态（若将来启用）只在用户登录后运行；当前未配置 autoLoginUser，机器重启后需登录才会启动。
 
+**服务守护（LaunchAgent）**
+
+- 线上由 `~/Library/LaunchAgents/ai.openclaw.artalk.plist` 守护；仓库副本在 `project-docs/ops/ai.openclaw.artalk.plist`。
+- 包装命令会在 Artalk 退出后 3 秒自动重启，避免 launchd 对短生命周期进程的 `inefficient` 节流导致不拉起：
+
+  ```bash
+  while true; do cd /Users/mac/artalk && ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1; sleep 3; done
+  ```
+
+- 常用命令：
+
+  ```bash
+  # 状态
+  launchctl print gui/$(id -u)/ai.openclaw.artalk
+  # 重载（bootstrap 报 EIO 时用 load 回退）
+  launchctl bootout gui/$(id -u)/ai.openclaw.artalk
+  launchctl load -w -S Aqua ~/Library/LaunchAgents/ai.openclaw.artalk.plist
+  # 强制重启
+  launchctl kickstart -k gui/$(id -u)/ai.openclaw.artalk
+  # 验证
+  curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
+  ```
+
+- 回滚到临时提交方式：`launchctl bootout gui/$(id -u)/ai.openclaw.artalk`，再执行 `launchctl submit -l ai.openclaw.artalk -- /bin/bash -c 'cd /Users/mac/artalk && exec ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1'`。
+- **限制**：LaunchAgent 在用户登录后运行；当前 Mac mini 未设置 `autoLoginUser`。若要求“重启无人登录也自动恢复”，需改用 LaunchDaemon（以 `mac` 用户运行）或开启自动登录；不要把 Artalk 配成 root 守护。
+
 ### 6.2 旅行助手
 
 - 前端组件 `docs/.vuepress/components/TravelAssistant.vue`，页面 `docs/08.项目/01.旅行助手.md`。
@@ -287,7 +313,7 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 ## 12. 已知问题与建议（按优先级）
 
 1. **P0 线上架构**：把 `vuepress dev` 换成 `npm run build` + 静态托管，并加进程守护/健康检查；方案见 `STATIC-HOSTING-PLAN.md`。
-2. **P0 Artalk 持久化**：当前 `ai.openclaw.artalk` 是 launchctl 临时提交，未找到 plist；补一个 `RunAtLoad`/`KeepAlive` 的 LaunchAgent。
+2. **P0 Artalk 持久化（已处理 2026-10-26）**：`ai.openclaw.artalk` 已改为 `~/Library/LaunchAgents/ai.openclaw.artalk.plist`（包装循环 + `RunAtLoad`/`KeepAlive`），副本在 `project-docs/ops/ai.openclaw.artalk.plist`；注意 LaunchAgent 需用户登录后才启动。
 3. **P1 站点身份**：统一替换 `DOMAIN_NAME`、`repo`、`blogger`、`author`、`extendFrontmatter`、`public/CNAME`、页脚版权，避免指向 xugaoyi。
 4. **P1 评论/旅行助手路由**：nginx 中 `/api/`、`/api/travel/`、`/sidebar/`、`/_AMapService/` 任何调整都要回归评论和旅行助手。
 5. **P1 依赖锁定**：提交 `package-lock.json`，CI 改用 `npm ci`；同步修正 `ci.yml` 的 yarn 流程。
