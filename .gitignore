@@ -33,3 +33,10 @@ __pycache__/
 
 # 本地环境变量（高德 Key 等）
 .env
+
+# 旅行助手运行数据（分享/反馈）
+backend/travel_assistant/data/travel.db
+backend/travel_assistant/data/travel.db-journal
+backend/travel_assistant/data/travel.db-wal
+backend/travel_assistant/data/travel.db-shm
+backend/travel_assistant/data/feedback.jsonl

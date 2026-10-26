@@ -1,36 +1,38 @@
-# 智能旅行助手 API
+# 智能旅行助手 API（P0 v2）
 
-《Hello-Agents》第十三章旅行助手的 FastAPI 实现。规则版规划器负责景点选择、每日行程、预算估算与提示，不依赖外部 API 密钥；后续可以在 `planner.py` 中接入 LLM、高德 MCP 或酒店/机票接口。
+FastAPI 实现：旅行画像、逐日行程（天气/穿衣/住宿区域/交通缓冲/用餐窗口/室内备选）、附近 POI、打包清单、分享与反馈。规则版规划器不依赖 LLM；高德 Web 服务可选，失败自动降级。
 
-## 运行
+## 运行（本地）
 
 ```bash
 cd backend/travel_assistant
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8090
+.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8091
 ```
 
-API 文档：`http://127.0.0.1:8090/docs`
+API 文档：`http://127.0.0.1:8091/docs`。生产环境仍由 nginx 反代到后端，本地调试不要占用 8090。
+
+高德 Key 从仓库根目录 `.env` 读取（`AMAP_WEB_KEY` / `AMAP_WEB_SECRET` / `AMAP_JS_KEY` / `AMAP_SECURITY_CODE`），不会返回给前端。无 key 时所有相关接口使用静态/季节规则兜底。
 
 ## 接口
 
 - `GET /api/travel/health`
-- `POST /api/travel/plan`
+- `POST /api/travel/plan`（兼容旧字段，新增 `profile`）
+- `GET /api/travel/poi`（food/lodging/transport/emergency）
+- `GET /api/travel/weather`
+- `POST /api/travel/share`、`GET /api/travel/share/{id}`
+- `POST /api/travel/feedback`
 
-请求示例：
+完整字段、枚举、示例与降级说明见 [API.md](./API.md)。
 
-```json
-{
-  "destination": "北京",
-  "start_date": "2026-11-01",
-  "end_date": "2026-11-03",
-  "budget": 3000,
-  "travelers": 2,
-  "preferences": ["历史", "美食"]
-}
-```
+## 运行数据
+
+- `data/travel.db`：分享（30 天 TTL）
+- `data/feedback.jsonl`：反馈追加日志
+
+两者均不提交 git；可用 `TRAVEL_DATA_DIR` 覆盖目录。
 
 ## 前端接入
 
-页面通过 `/api/travel/plan` 调用；VuePress dev server 在 `docs/.vuepress/config.ts` 的 `devServer.proxy` 中把 `/api/travel` 转发到 `127.0.0.1:8090`。生产环境如果改为静态托管，需要在 nginx 增加同样的反代。
+页面通过 `/api/travel/*` 调用；VuePress dev server 在 `docs/.vuepress/config.ts` 的 `devServer.proxy` 中把 `/api/travel` 转发到后端。生产环境由 nginx 反代。所有价格/营业时间为参考，不提供预订或支付承诺。

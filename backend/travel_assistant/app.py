@@ -1,47 +1,36 @@
 import json
-import os
+import logging
+from datetime import date, datetime, timezone
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode
 from urllib.request import Request as UrlRequest, urlopen
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 
-from models import TravelRequest
+from amap import (
+    AMAP_KEY,
+    AMAP_SECURITY_CODE,
+    enrich_routes,
+)
+from models import FeedbackRequest, ShareRequest, TravelRequest
 from planner import build_plan
+from pois import CATEGORIES, find_pois
+from store import append_feedback, get_share, save_share
+from weather import get_weather
 
+logger = logging.getLogger("travel_assistant")
 
-
-def _load_root_env() -> None:
-    """读取仓库根目录 .env（不提交到 git），供高德代理使用。"""
-    root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    path = os.path.join(root, ".env")
-    if not os.path.exists(path):
-        return
-    with open(path, encoding="utf-8") as fh:
-        for raw in fh:
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
-
-
-_load_root_env()
-AMAP_KEY = os.environ.get("AMAP_JS_KEY", "").strip()
-AMAP_SECURITY_CODE = os.environ.get("AMAP_SECURITY_CODE", "").strip()
-AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY", "").strip()
-AMAP_WEB_SECRET = os.environ.get("AMAP_WEB_SECRET", "").strip()
 AMAP_ALLOWED_PREFIXES = ("v3/", "v4/", "v5/", "ws/")
 AMAP_HOST = "https://restapi.amap.com"
-
+MAX_SHARE_BYTES = 512 * 1024
 
 app = FastAPI(
     title="Travel Assistant API",
-    description="基于 FastAPI 的智能旅行助手：行程规划、预算估算与实用提示。",
-    version="1.0.0",
+    description="基于 FastAPI 的智能旅行助手：画像行程、天气穿衣、附近推荐、分享与反馈。",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -51,192 +40,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-_DRIVE_CACHE: dict[tuple[float, float, float, float], tuple[float, int] | None] = {}
-
-
-def _wgs84_to_gcj02(lng: float, lat: float) -> tuple[float, float]:
-    """WGS-84 → GCJ-02（高德坐标系）。"""
-    import math
-
-    if not (73.66 < lng < 135.05 and 3.86 < lat < 53.55):
-        return lng, lat
-    a, ee = 6378245.0, 0.00669342162296594323
-    dlat = -100.0 + 2.0 * (lng - 105.0) + 3.0 * (lat - 35.0) + 0.2 * (lat - 35.0) ** 2 + 0.1 * (lng - 105.0) * (lat - 35.0) + 0.2 * math.sqrt(abs(lng - 105.0))
-    dlat += (20.0 * math.sin(6.0 * (lng - 105.0) * math.pi) + 20.0 * math.sin(2.0 * (lng - 105.0) * math.pi)) * 2.0 / 3.0
-    dlat += (20.0 * math.sin((lat - 35.0) * math.pi) + 40.0 * math.sin((lat - 35.0) / 3.0 * math.pi)) * 2.0 / 3.0
-    dlat += (160.0 * math.sin((lat - 35.0) / 12.0 * math.pi) + 320 * math.sin((lat - 35.0) * math.pi / 30.0)) * 2.0 / 3.0
-    dlng = 300.0 + (lng - 105.0) + 2.0 * (lat - 35.0) + 0.1 * (lng - 105.0) ** 2 + 0.1 * (lng - 105.0) * (lat - 35.0) + 0.1 * math.sqrt(abs(lng - 105.0))
-    dlng += (20.0 * math.sin(6.0 * (lng - 105.0) * math.pi) + 20.0 * math.sin(2.0 * (lng - 105.0) * math.pi)) * 2.0 / 3.0
-    dlng += (20.0 * math.sin((lng - 105.0) * math.pi) + 40.0 * math.sin((lng - 105.0) / 3.0 * math.pi)) * 2.0 / 3.0
-    dlng += (150.0 * math.sin((lng - 105.0) / 12.0 * math.pi) + 300.0 * math.sin((lng - 105.0) / 30.0 * math.pi)) * 2.0 / 3.0
-    rad = lat / 180.0 * math.pi
-    magic = 1 - ee * math.sin(rad) ** 2
-    sqrt_magic = math.sqrt(magic)
-    dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrt_magic) * math.pi)
-    dlng = (dlng * 180.0) / (a / sqrt_magic * math.cos(rad) * math.pi)
-    return lng + dlng, lat + dlat
-
-
-def _amap_web_get(path: str, params: dict) -> dict:
-    """调用高德 Web 服务（带数字签名）。"""
-    import hashlib
-    import urllib.request
-    from urllib.parse import urlencode
-
-    query = {k: v for k, v in params.items() if v is not None}
-    query["key"] = AMAP_WEB_KEY
-    query["output"] = "json"
-    if AMAP_WEB_SECRET:
-        raw = "&".join(f"{k}={query[k]}" for k in sorted(query))
-        query["sig"] = hashlib.md5((raw + AMAP_WEB_SECRET).encode("utf-8")).hexdigest()
-    url = f"https://restapi.amap.com/{path}?{urlencode(query)}"
-    with urllib.request.urlopen(url, timeout=6) as response:
-        return json.load(response)
-
-
-def _driving(origin: tuple[float, float], destination: tuple[float, float]) -> dict | None:
-    """两点驾车信息：km / min / tolls / lights。"""
-    key = (origin[0], origin[1], destination[0], destination[1])
-    if key in _DRIVE_CACHE:
-        return _DRIVE_CACHE[key]
-    result = None
-    if AMAP_WEB_KEY:
-        try:
-            data = _amap_web_get("v3/direction/driving", {
-                "origin": f"{origin[0]:.6f},{origin[1]:.6f}",
-                "destination": f"{destination[0]:.6f},{destination[1]:.6f}",
-                "strategy": 0,
-                "extensions": "base",
-            })
-            paths = ((data.get("route") or {}).get("paths") or [])
-            if data.get("status") == "1" and paths:
-                path = paths[0]
-                distance = int(path.get("distance") or 0)
-                duration = int(path.get("duration") or 0)
-                if distance:
-                    result = {
-                        "km": round(distance / 1000, 1),
-                        "min": max(1, round(duration / 60)),
-                        "tolls": int(path.get("tolls") or 0),
-                        "lights": int(path.get("traffic_lights") or 0),
-                    }
-        except Exception:
-            result = None
-    _DRIVE_CACHE[key] = result
-    return result
-
-
-def _geocode_origin(origin: str, city: str) -> tuple[float, float] | None:
-    """把出发地名称解析为 GCJ-02 坐标。"""
-    if not origin or not AMAP_WEB_KEY:
-        return None
-    try:
-        data = _amap_web_get("v3/geocode/geo", {"address": origin, "city": city})
-        geocodes = data.get("geocodes") or []
-        if data.get("status") == "1" and geocodes:
-            lng, lat = geocodes[0]["location"].split(",")
-            return float(lng), float(lat)
-    except Exception:
-        return None
-    return None
-
-
-def _enrich_routes(plan_data: dict, origin_name: str = "", origin_lng: float | None = None, origin_lat: float | None = None) -> dict:
-    """用真实驾车路线替换直线距离（失败时保留原 distance_km）；支持出发点 → 首站路段。"""
-    if not AMAP_WEB_KEY:
-        return plan_data
-    for day in plan_data.get("days", []):
-        stops = [
-            _wgs84_to_gcj02(item["lng"], item["lat"])
-            for item in day.get("items", [])
-            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float))
-        ]
-        if len(stops) < 2:
-            continue
-        total_km = 0.0
-        total_min = 0
-        total_tolls = 0
-        total_lights = 0
-        segments = []
-        ok = False
-        titles = [
-            item.get("title")
-            for item in day.get("items", [])
-            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float))
-        ]
-        for index, (prev, cur) in enumerate(zip(stops, stops[1:])):
-            segment = _driving(prev, cur)
-            if segment:
-                total_km += segment["km"]
-                total_min += segment["min"]
-                total_tolls += segment["tolls"]
-                total_lights += segment["lights"]
-                ok = True
-                segments.append({
-                    "from": titles[index] if index < len(titles) else "",
-                    "to": titles[index + 1] if index + 1 < len(titles) else "",
-                    **segment,
-                })
-        if ok:
-            day["route_km"] = round(total_km, 1)
-            day["route_min"] = total_min
-            day["tolls"] = total_tolls
-            day["lights"] = total_lights
-            day["segments"] = segments
-
-    # 出发点 → 第一天首站
-    day0 = (plan_data.get("days") or [None])[0]
-    first_stop = None
-    if day0:
-        for item in day0.get("items", []):
-            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float)):
-                first_stop = _wgs84_to_gcj02(item["lng"], item["lat"])
-                break
-
-    if origin_lng is not None and origin_lat is not None:
-        origin_point = _wgs84_to_gcj02(origin_lng, origin_lat)
-        origin_display = origin_name or "当前定位"
-    else:
-        origin_point = _geocode_origin(origin_name, plan_data.get("destination", "")) if origin_name else None
-        origin_display = origin_name
-
-    if origin_point:
-        plan_data["origin"] = {
-            "name": origin_display,
-            "lng": round(origin_point[0], 6),
-            "lat": round(origin_point[1], 6),
-        }
-        if first_stop:
-            leg = _driving(origin_point, first_stop)
-            if leg and day0:
-                plan_data["origin"]["to_first_km"] = leg["km"]
-                plan_data["origin"]["to_first_min"] = leg["min"]
-                plan_data["origin"]["tolls"] = leg["tolls"]
-                plan_data["origin"]["lights"] = leg["lights"]
-                day0["route_km"] = round((day0.get("route_km") or 0) + leg["km"], 1)
-                day0["route_min"] = (day0.get("route_min") or 0) + leg["min"]
-                day0["tolls"] = (day0.get("tolls") or 0) + leg["tolls"]
-                day0["lights"] = (day0.get("lights") or 0) + leg["lights"]
-
-    # 返程：最后一天最后一个景点 → 出发地
-    last_day = (plan_data.get("days") or [None])[-1]
-    last_stop = None
-    if last_day:
-        for item in reversed(last_day.get("items", [])):
-            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float)):
-                last_stop = _wgs84_to_gcj02(item["lng"], item["lat"])
-                break
-    if origin_point and last_stop:
-        back = _driving(last_stop, origin_point)
-        if back:
-            plan_data["return_leg"] = {
-                "from": "最后一站",
-                "to": origin_display,
-                **back,
-            }
-    return plan_data
 
 
 def _amap_fetch(url: str, body: bytes | None, method: str, content_type: str):
@@ -281,14 +84,24 @@ async def amap_proxy(path: str, request: Request):
 
 @app.get("/api/travel/health")
 def health():
-    return {"status": "ok", "service": "travel-assistant", "version": "1.0.0"}
+    return {"status": "ok", "service": "travel-assistant", "version": "2.0.0"}
 
 
 @app.get("/api/travel/")
 def index():
     return {
         "service": "travel-assistant",
-        "endpoints": ["/api/travel/health", "/api/travel/plan", "/docs"],
+        "version": "2.0.0",
+        "endpoints": [
+            "/api/travel/health",
+            "/api/travel/plan",
+            "/api/travel/poi",
+            "/api/travel/weather",
+            "/api/travel/share",
+            "/api/travel/share/{id}",
+            "/api/travel/feedback",
+            "/docs",
+        ],
     }
 
 
@@ -302,7 +115,97 @@ def plan(request: TravelRequest):
             budget=request.budget,
             travelers=request.travelers,
             preferences=request.preferences,
+            profile=request.profile,
         )
-        return _enrich_routes(plan_data, request.origin, request.origin_lng, request.origin_lat)
+        return enrich_routes(plan_data, request.origin, request.origin_lng, request.origin_lat)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("plan generation failed")
+        raise HTTPException(status_code=500, detail="生成行程失败，请稍后重试") from exc
+
+
+@app.get("/api/travel/weather")
+def weather_endpoint(
+    destination: str = Query(..., min_length=1, max_length=40),
+    day: str = Query(..., alias="date", description="YYYY-MM-DD"),
+):
+    try:
+        wanted = date.fromisoformat(day[:10])
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="date 需为 YYYY-MM-DD") from exc
+    return get_weather(destination, wanted)
+
+
+@app.get("/api/travel/poi")
+def poi_endpoint(
+    category: str = Query(..., description="food|lodging|transport|emergency"),
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
+    radius: int = Query(1500, description="米，最大 5000"),
+    destination: str = Query("", max_length=40),
+    dietary: str = Query("", max_length=100, description="逗号分隔"),
+    budget: float | None = Query(None, ge=0, le=100000, description="人均预算"),
+    limit: int = Query(6, description="1-12"),
+):
+    if category not in CATEGORIES:
+        raise HTTPException(status_code=400, detail="category 必须是 food/lodging/transport/emergency")
+    radius = max(100, min(radius, 5000))
+    limit = max(1, min(limit, 12))
+    diet_list = [item.strip() for item in dietary.split(",") if item.strip()]
+    return find_pois(
+        category=category,
+        lat=lat,
+        lng=lng,
+        radius=radius,
+        destination=destination,
+        dietary=diet_list,
+        budget=budget,
+        limit=limit,
+    )
+
+
+@app.post("/api/travel/share")
+def share_endpoint(request: ShareRequest):
+    payload = request.plan
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="plan 必须是对象")
+    try:
+        raw = json.dumps(payload, ensure_ascii=False)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="plan 不是合法 JSON") from exc
+    if len(raw.encode("utf-8")) > MAX_SHARE_BYTES:
+        raise HTTPException(status_code=413, detail="plan 过大")
+    try:
+        share_id = save_share(payload)
+    except Exception as exc:
+        logger.exception("save share failed")
+        raise HTTPException(status_code=500, detail="保存分享失败，请稍后重试") from exc
+    return {"id": share_id}
+
+
+@app.get("/api/travel/share/{share_id}")
+def shared_plan(share_id: str):
+    payload = get_share(share_id)
+    if payload is None:
+        raise HTTPException(status_code=404, detail="分享不存在或已过期")
+    return JSONResponse(payload)
+
+
+@app.post("/api/travel/feedback")
+def feedback_endpoint(request: FeedbackRequest):
+    note = "".join(ch for ch in request.note if ch >= " " or ch == "\n").strip()[:500]
+    record = {
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "plan_id": request.plan_id,
+        "item_id": request.item_id,
+        "helpful": request.helpful,
+        "visited": request.visited,
+        "note": note,
+    }
+    try:
+        append_feedback(record)
+    except Exception as exc:
+        logger.exception("write feedback failed")
+        raise HTTPException(status_code=500, detail="反馈保存失败，请稍后重试") from exc
+    return {"ok": True}
