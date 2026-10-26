@@ -191,8 +191,11 @@
 </template>
 
 <script>
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Leaflet 在模块加载时访问 window，SSR 构建会报 "window is not defined"。
+// 改为客户端首次使用地图时动态加载。
+let L = null
 
 const pad = value => String(value).padStart(2, '0')
 const formatDate = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -318,6 +321,10 @@ export default {
         } catch (e) {
           console.warn('[travel] 高德地图初始化失败，回退 Leaflet', e)
         }
+      }
+      if (!L) {
+        const mod = await import('leaflet')
+        L = mod.default || mod
       }
       this.initLeaflet()
     },
