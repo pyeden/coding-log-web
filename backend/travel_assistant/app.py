@@ -96,26 +96,32 @@ def _amap_web_get(path: str, params: dict) -> dict:
         return json.load(response)
 
 
-def _driving(origin: tuple[float, float], destination: tuple[float, float]) -> tuple[float, int] | None:
-    """两点驾车距离（km）与耗时（分钟）。"""
+def _driving(origin: tuple[float, float], destination: tuple[float, float]) -> dict | None:
+    """两点驾车信息：km / min / tolls / lights。"""
     key = (origin[0], origin[1], destination[0], destination[1])
     if key in _DRIVE_CACHE:
         return _DRIVE_CACHE[key]
     result = None
     if AMAP_WEB_KEY:
         try:
-            data = _amap_web_get("v3/distance", {
-                "origins": f"{origin[0]:.6f},{origin[1]:.6f}",
+            data = _amap_web_get("v3/direction/driving", {
+                "origin": f"{origin[0]:.6f},{origin[1]:.6f}",
                 "destination": f"{destination[0]:.6f},{destination[1]:.6f}",
-                "type": 1,
+                "strategy": 0,
+                "extensions": "base",
             })
-            results = data.get("results") or []
-            if data.get("status") == "1" and results:
-                item = results[0]
-                distance = int(item.get("distance") or 0)
-                duration = int(item.get("duration") or 0)
+            paths = ((data.get("route") or {}).get("paths") or [])
+            if data.get("status") == "1" and paths:
+                path = paths[0]
+                distance = int(path.get("distance") or 0)
+                duration = int(path.get("duration") or 0)
                 if distance:
-                    result = (round(distance / 1000, 1), max(1, round(duration / 60)))
+                    result = {
+                        "km": round(distance / 1000, 1),
+                        "min": max(1, round(duration / 60)),
+                        "tolls": int(path.get("tolls") or 0),
+                        "lights": int(path.get("traffic_lights") or 0),
+                    }
         except Exception:
             result = None
     _DRIVE_CACHE[key] = result
@@ -151,16 +157,34 @@ def _enrich_routes(plan_data: dict, origin_name: str = "", origin_lng: float | N
             continue
         total_km = 0.0
         total_min = 0
+        total_tolls = 0
+        total_lights = 0
+        segments = []
         ok = False
-        for prev, cur in zip(stops, stops[1:]):
+        titles = [
+            item.get("title")
+            for item in day.get("items", [])
+            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float))
+        ]
+        for index, (prev, cur) in enumerate(zip(stops, stops[1:])):
             segment = _driving(prev, cur)
             if segment:
-                total_km += segment[0]
-                total_min += segment[1]
+                total_km += segment["km"]
+                total_min += segment["min"]
+                total_tolls += segment["tolls"]
+                total_lights += segment["lights"]
                 ok = True
+                segments.append({
+                    "from": titles[index] if index < len(titles) else "",
+                    "to": titles[index + 1] if index + 1 < len(titles) else "",
+                    **segment,
+                })
         if ok:
             day["route_km"] = round(total_km, 1)
             day["route_min"] = total_min
+            day["tolls"] = total_tolls
+            day["lights"] = total_lights
+            day["segments"] = segments
 
     # 出发点 → 第一天首站
     day0 = (plan_data.get("days") or [None])[0]
@@ -187,10 +211,31 @@ def _enrich_routes(plan_data: dict, origin_name: str = "", origin_lng: float | N
         if first_stop:
             leg = _driving(origin_point, first_stop)
             if leg and day0:
-                plan_data["origin"]["to_first_km"] = leg[0]
-                plan_data["origin"]["to_first_min"] = leg[1]
-                day0["route_km"] = round((day0.get("route_km") or 0) + leg[0], 1)
-                day0["route_min"] = (day0.get("route_min") or 0) + leg[1]
+                plan_data["origin"]["to_first_km"] = leg["km"]
+                plan_data["origin"]["to_first_min"] = leg["min"]
+                plan_data["origin"]["tolls"] = leg["tolls"]
+                plan_data["origin"]["lights"] = leg["lights"]
+                day0["route_km"] = round((day0.get("route_km") or 0) + leg["km"], 1)
+                day0["route_min"] = (day0.get("route_min") or 0) + leg["min"]
+                day0["tolls"] = (day0.get("tolls") or 0) + leg["tolls"]
+                day0["lights"] = (day0.get("lights") or 0) + leg["lights"]
+
+    # 返程：最后一天最后一个景点 → 出发地
+    last_day = (plan_data.get("days") or [None])[-1]
+    last_stop = None
+    if last_day:
+        for item in reversed(last_day.get("items", [])):
+            if isinstance(item.get("lat"), (int, float)) and isinstance(item.get("lng"), (int, float)):
+                last_stop = _wgs84_to_gcj02(item["lng"], item["lat"])
+                break
+    if origin_point and last_stop:
+        back = _driving(last_stop, origin_point)
+        if back:
+            plan_data["return_leg"] = {
+                "from": "最后一站",
+                "to": origin_display,
+                **back,
+            }
     return plan_data
 
 

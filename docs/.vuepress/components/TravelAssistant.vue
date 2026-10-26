@@ -599,12 +599,16 @@ export default {
           const seg = await this.drivingPath(stops[k], stops[k + 1])
           const path = seg && seg.path
           draw(path || [stops[k], stops[k + 1]], color, !path)
-          if (seg) {
-            tolls += seg.tolls
-            lights += seg.lights
+          const meta = (day.segments || [])[k]
+          if (seg || meta) {
+            const km = meta ? meta.km : Math.round(seg.distance / 100) / 10
+            const tollsValue = meta ? meta.tolls : Math.round(seg.tolls)
+            const lightsValue = meta ? meta.lights : seg.lights
+            tolls += tollsValue
+            lights += lightsValue
             this.addRouteLabel(
               path ? path[Math.floor(path.length / 2)] : stops[k],
-              `${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+              `${km} km · 过路费 ¥${tollsValue} · ${lightsValue} 红灯`,
               color
             )
           }
@@ -622,16 +626,14 @@ export default {
         const seg = await this.drivingPath(from, first)
         const path = seg && seg.path
         draw(path || [from, first], '#fbbf24', !path)
-        if (seg) {
-          this.$set(this.result, 'origin_leg', {
-            km: Math.round(seg.distance / 100) / 10,
-            min: Math.max(1, Math.round(seg.time / 60)),
-            tolls: Math.round(seg.tolls),
-            lights: seg.lights,
-          })
+        const oMeta = this.result.origin
+        if (seg || oMeta) {
+          const oKm = oMeta && oMeta.to_first_km != null ? oMeta.to_first_km : Math.round(seg.distance / 100) / 10
+          const oTolls = oMeta && oMeta.tolls != null ? oMeta.tolls : Math.round(seg.tolls)
+          const oLights = oMeta && oMeta.lights != null ? oMeta.lights : seg.lights
           this.addRouteLabel(
             path ? path[Math.floor(path.length / 2)] : from,
-            `出发 ${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+            `出发 ${oKm} km · 过路费 ¥${oTolls} · ${oLights} 红灯`,
             '#fbbf24'
           )
         }
@@ -642,16 +644,14 @@ export default {
         const seg = await this.drivingPath(lastPoint, to)
         const path = seg && seg.path
         draw(path || [lastPoint, to], '#fbbf24', !path)
-        if (seg) {
-          this.$set(this.result, 'return_leg', {
-            km: Math.round(seg.distance / 100) / 10,
-            min: Math.max(1, Math.round(seg.time / 60)),
-            tolls: Math.round(seg.tolls),
-            lights: seg.lights,
-          })
+        const rMeta = this.result.return_leg
+        if (seg || rMeta) {
+          const rKm = rMeta ? rMeta.km : Math.round(seg.distance / 100) / 10
+          const rTolls = rMeta ? rMeta.tolls : Math.round(seg.tolls)
+          const rLights = rMeta ? rMeta.lights : seg.lights
           this.addRouteLabel(
             path ? path[Math.floor(path.length / 2)] : to,
-            `返程 ${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+            `返程 ${rKm} km · 过路费 ¥${rTolls} · ${rLights} 红灯`,
             '#fbbf24'
           )
         }
