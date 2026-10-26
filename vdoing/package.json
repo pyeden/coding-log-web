@@ -3,15 +3,17 @@
   "version": "1.12.9",
   "description": "Vdoing theme for VuePress. 一个基于VuePress的知识管理兼博客主题。",
   "author": {
-    "name": "gaoyi(Evan) Xu"
+    "name": "三木",
+    "email": "1019217919@qq.com",
+    "url": "https://seres-ai.com"
   },
-  "homepage": "https://github.com/xugaoyi/vuepress-theme-vdoing#readme",
+  "homepage": "https://seres-ai.com",
   "bugs": {
-    "url": "https://github.com/xugaoyi/vuepress-theme-vdoing/issues"
+    "url": "https://github.com/pyeden/coding-log-web/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xugaoyi/vuepress-theme-vdoing.git"
+    "url": "git+https://github.com/pyeden/coding-log-web.git"
   },
   "keywords": [
     "documentation",
@@ -25,8 +27,9 @@
   "main": "index.js",
   "maintainers": [
     {
-      "name": "Evan xu",
-      "email": "894072666@qq.com"
+      "name": "三木",
+      "email": "1019217919@qq.com",
+      "url": "https://github.com/pyeden"
     }
   ],
   "dependencies": {
