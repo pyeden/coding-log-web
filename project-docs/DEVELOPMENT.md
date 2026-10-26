@@ -170,6 +170,21 @@ tags:
 - 管理员账号/密码不在仓库；存放位置待确认，不要写入任何文件。
 - 切换深浅色时 `enhanceApp.js` 会同步 Artalk 主题，不要在页面里重复初始化。
 
+#### 6.1.1 服务启动方式与持久化尝试（2026-10-26）
+
+当前线上仍是 `launchctl submit` 的临时作业（`type = Submitted`，没有 plist），注销/重启后不会自动恢复。查看与恢复命令：
+
+```bash
+launchctl print gui/501/ai.openclaw.artalk
+# 若作业不存在，重新提交（不落盘，仅当前登录会话有效）
+launchctl submit -l ai.openclaw.artalk -- /bin/bash -c 'cd /Users/mac/artalk && exec ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1'
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
+```
+
+2026-10-26 曾尝试改为 `~/Library/LaunchAgents/ai.openclaw.artalk.plist`（`RunAtLoad` + `KeepAlive`），启动成功，但 `kill -TERM` 后 launchd 未在 10s/30s 内重启（`state = not running`、`last exit code = 0`），因此已回滚。失败备份在 `/Users/mac/artalk/ai.openclaw.artalk.plist.failed-20261026-141905`；**不要直接复用该 plist**，需要 supervisor wrapper 或修正 `KeepAlive` 语义后重新验证。
+
+LaunchAgent 形态（若将来启用）只在用户登录后运行；当前未配置 autoLoginUser，机器重启后需登录才会启动。
+
 ### 6.2 旅行助手
 
 - 前端组件 `docs/.vuepress/components/TravelAssistant.vue`，页面 `docs/08.项目/01.旅行助手.md`。
