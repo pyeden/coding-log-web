@@ -3,13 +3,6 @@
     <header class="ta-hero">
       <p class="ta-kicker"><i></i>TRAVEL LAB / FASTAPI</p>
       <h2>把一趟旅行，拆成可执行的每一天</h2>
-      <p class="ta-lead">输入目的地、日期与偏好，自动生成逐日行程、预算明细和实用提示。出发前规划、路上看今日、随时分享给同行人。</p>
-      <div class="ta-meta">
-        <span>逐日安排</span>
-        <span>今日卡片</span>
-        <span>附近推荐</span>
-        <span>打包清单</span>
-      </div>
     </header>
 
     <nav class="ta-modes" aria-label="旅行助手视图">
