@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.frpc.tunnel</string>
+  <key>UserName</key><string>mac</string>
+  <key>GroupName</key><string>staff</string>
+  <key>WorkingDirectory</key><string>/Users/mac/frp_0.68.0_darwin_amd64</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/mac/frp_0.68.0_darwin_amd64/frpc</string>
+    <string>-c</string>
+    <string>/Users/mac/frp_0.68.0_darwin_amd64/frpc.toml</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>StandardOutPath</key><string>/Users/mac/frp_0.68.0_darwin_amd64/frpc.launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/mac/frp_0.68.0_darwin_amd64/frpc.launchd.err.log</string>
+</dict>
+</plist>

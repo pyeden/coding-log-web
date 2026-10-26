@@ -286,6 +286,26 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 
 > 当前线上是 dev server，发布即热更新；这也是为什么必须避免在线上直接编辑文件。
 
+### 10.3 开机自启（LaunchDaemons）
+
+线上项目的常驻服务统一由 `/Library/LaunchDaemons/` 下的 LaunchDaemon 守护，开机即启动，不依赖用户登录：
+
+| 服务 | Label | 端口 | 运行身份 | 日志/配置 |
+| --- | --- | --- | --- | --- |
+| 博客 dev server | `ai.openclaw.codinglogweb.dev` | 8080 | `mac` | `output.log`；`npm run dev` wrapper，退出 5s 重启 |
+| 旅行助手 API | `ai.openclaw.travel-api` | 8090 | `mac` | `backend/travel_assistant/server.log` |
+| Artalk 评论 | `ai.openclaw.artalk` | 23366 | `mac` | `/Users/mac/artalk/server.log` |
+| nginx | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | `/usr/local/etc/nginx/nginx.conf` + `nginx/server/*` |
+| frpc 隧道 | `com.frpc.tunnel` | 80/443 隧道 | `mac` | `frp_0.68.0_darwin_amd64/frpc.launchd.log` |
+
+- 旧用户 LaunchAgent 已改名并 `bootout`，文件形如 `~/Library/LaunchAgents/*.disabled-by-daemon-*`。
+- 仓库副本与说明：`project-docs/ops/`（`README.md` + 各服务 plist）。
+- 状态/重启：`launchctl print system/<label>`、`sudo launchctl kickstart -k system/<label>`。
+- 改 nginx 配置后先 `sudo nginx -t`，再 `sudo launchctl kickstart -k system/ai.openclaw.nginx`。
+- `include .../nginx/server/*` 会加载目录内所有文件；备份必须放 `nginx/backups/`，不要留在 `nginx/server/`。
+- 博客 dev server 首次启动需 15–25s 编译，期间公网可能短暂 502。
+- **OpenClaw Gateway（18789）仍是 LaunchAgent**，属于当前会话宿主，未纳入开机自启目录；它随用户登录启动。
+
 ## 11. 排错手册
 
 | 现象 | 原因 | 处理 |
