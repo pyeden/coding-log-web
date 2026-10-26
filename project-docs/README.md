@@ -45,5 +45,5 @@
 ## 当前基线
 
 - 核对日期：2026-10-26
-- Git：`master` @ `c3874ef`（MacBook 与 Mac mini 两份副本 HEAD 一致）
+- Git：核对基线 `master` @ `c3874ef`（接手时两端一致；本轮文档/构建修复提交尚未部署到 Mac mini）
 - Node：v24.22.1 / npm 11.19.1；主题要求 Node >= 18

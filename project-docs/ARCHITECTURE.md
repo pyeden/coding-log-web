@@ -1,7 +1,7 @@
 # coding-log-web 架构说明
 
 > 面向后续开发/迭代的维护者与 AI agent。
-> 核对时间：2026-10-26；基线：`master` @ `c3874ef`（MacBook 开发副本与 Mac mini 线上副本 HEAD 一致）。
+> 核对时间：2026-10-26；核对基线：`master` @ `c3874ef`（接手时两端一致；本轮文档/构建修复提交尚未部署到 Mac mini）。
 > 本次核对范围：`docs/.vuepress/config.ts`、`enhanceApp.js`、`components/`、`backend/travel_assistant/`、`nginx/server/*.conf`、两端运行进程与监听端口。
 
 ## 1. 项目定位
