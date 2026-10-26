@@ -170,43 +170,28 @@ tags:
 - 管理员账号/密码不在仓库；存放位置待确认，不要写入任何文件。
 - 切换深浅色时 `enhanceApp.js` 会同步 Artalk 主题，不要在页面里重复初始化。
 
-#### 6.1.1 服务启动方式与持久化尝试（2026-10-26）
+#### 6.1.1 服务守护（LaunchAgent，2026-10-26）
 
-当前线上仍是 `launchctl submit` 的临时作业（`type = Submitted`，没有 plist），注销/重启后不会自动恢复。查看与恢复命令：
+当前线上由 `~/Library/LaunchAgents/ai.openclaw.artalk.plist` 守护，仓库副本在 `project-docs/ops/ai.openclaw.artalk.plist`（两份内容一致）。
+
+- 纯 `KeepAlive` 方案实测不可靠：Artalk 被 `kill -TERM` 后 launchd 在 10s/30s 内没有拉起，`state = not running`、`last exit code = 0`，并出现 `pended nondemand spawn = inefficient` 节流。
+- 因此 plist 改为 **包装循环**：Artalk 退出后 3 秒自动重启；launchd 只负责守住 wrapper。实测 kill Artalk 子进程后 3–7 秒恢复，PID 变化、23366 重新监听。
+- 失败备份在 `/Users/mac/artalk/ai.openclaw.artalk.plist.failed-20261026-141905`，**不要复用**（纯 KeepAlive 版本）。
+
+常用命令：
 
 ```bash
-launchctl print gui/501/ai.openclaw.artalk
-# 若作业不存在，重新提交（不落盘，仅当前登录会话有效）
-launchctl submit -l ai.openclaw.artalk -- /bin/bash -c 'cd /Users/mac/artalk && exec ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1'
+# 状态：应看到 state = running，pid 为 wrapper；子进程用 pgrep -x artalk
+launchctl print gui/$(id -u)/ai.openclaw.artalk
+pgrep -fl "artalk server"
+# 重载（bootstrap 报 EIO 时用 load 回退）
+launchctl bootout gui/$(id -u)/ai.openclaw.artalk
+launchctl load -w -S Aqua ~/Library/LaunchAgents/ai.openclaw.artalk.plist
+# 强制重启 wrapper
+launchctl kickstart -k gui/$(id -u)/ai.openclaw.artalk
+# 验证
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
 ```
-
-2026-10-26 曾尝试改为 `~/Library/LaunchAgents/ai.openclaw.artalk.plist`（`RunAtLoad` + `KeepAlive`），启动成功，但 `kill -TERM` 后 launchd 未在 10s/30s 内重启（`state = not running`、`last exit code = 0`），因此已回滚。失败备份在 `/Users/mac/artalk/ai.openclaw.artalk.plist.failed-20261026-141905`；**不要直接复用该 plist**，需要 supervisor wrapper 或修正 `KeepAlive` 语义后重新验证。
-
-LaunchAgent 形态（若将来启用）只在用户登录后运行；当前未配置 autoLoginUser，机器重启后需登录才会启动。
-
-**服务守护（LaunchAgent）**
-
-- 线上由 `~/Library/LaunchAgents/ai.openclaw.artalk.plist` 守护；仓库副本在 `project-docs/ops/ai.openclaw.artalk.plist`。
-- 包装命令会在 Artalk 退出后 3 秒自动重启，避免 launchd 对短生命周期进程的 `inefficient` 节流导致不拉起：
-
-  ```bash
-  while true; do cd /Users/mac/artalk && ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1; sleep 3; done
-  ```
-
-- 常用命令：
-
-  ```bash
-  # 状态
-  launchctl print gui/$(id -u)/ai.openclaw.artalk
-  # 重载（bootstrap 报 EIO 时用 load 回退）
-  launchctl bootout gui/$(id -u)/ai.openclaw.artalk
-  launchctl load -w -S Aqua ~/Library/LaunchAgents/ai.openclaw.artalk.plist
-  # 强制重启
-  launchctl kickstart -k gui/$(id -u)/ai.openclaw.artalk
-  # 验证
-  curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:23366/sidebar/
-  ```
 
 - 回滚到临时提交方式：`launchctl bootout gui/$(id -u)/ai.openclaw.artalk`，再执行 `launchctl submit -l ai.openclaw.artalk -- /bin/bash -c 'cd /Users/mac/artalk && exec ./artalk server -c config.yml >> /Users/mac/artalk/server.log 2>&1'`。
 - **限制**：LaunchAgent 在用户登录后运行；当前 Mac mini 未设置 `autoLoginUser`。若要求“重启无人登录也自动恢复”，需改用 LaunchDaemon（以 `mac` 用户运行）或开启自动登录；不要把 Artalk 配成 root 守护。
