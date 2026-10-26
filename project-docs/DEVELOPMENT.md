@@ -258,7 +258,7 @@ sqlite3 /Users/mac/artalk/data/artalk.db 'select count(*) from comments;'
 - [ ] `npm run dev` 无红色报错，侧边栏/目录页/文章可访问
 - [ ] 文章页评论区能加载（Artalk 23366 可达）
 - [ ] 旅行助手页面能出结果（8090 可达，或接受 502 并说明后端未启动）
-- [ ] `npm run build` 成功，日志无「序号出错」「序号重复」「非 .md 文件」警告
+- [ ] 在 MacBook 上 `npm run build` 成功，日志无「序号出错」「序号重复」「非 .md 文件」警告
 - [ ] `git diff` 只包含预期改动（主题可能自动补 frontmatter）
 - [ ] 新 permalink 全局唯一：`grep -r "permalink: /pages/xxxxxx/" docs`
 - [ ] 没有把维护文档、临时文件放进 `docs/`
@@ -266,24 +266,24 @@ sqlite3 /Users/mac/artalk/data/artalk.db 'select count(*) from comments;'
 
 ### 10.2 发布到线上（Mac mini）
 
-固定流程：**MacBook 开发 → commit/push → Mac mini 部署**。禁止在 Mac mini 上直接编辑代码或内容。
+固定流程：**MacBook 构建 → MacBook commit/push → rsync 产物到 Mac mini → 切 release**。**禁止在 Mac mini 上执行 `npm run build`**（CPU 占用高）；Mac mini 只接收构建产物、切软链和重启服务。
 
 ```bash
-# MacBook
+# MacBook：构建 + 提交
+npm run build
 git add <具体文件> && git commit -m "内容: 简述本次改动" && git push origin master
 
-# Mac mini
-cd /Users/mac/coding-log-web
-git status                 # 确认无本地改动
-git pull --ff-only origin master
-# 生产发布：先停 8080（避免 .temp 争用）→ npm run build
-# → 同步 dist 到 coding-log-web-releases/<version>/dist → 切 current
-# → sudo launchctl kickstart -k system/ai.openclaw.nginx
-# 8080 保留作回滚；改了 backend/travel_assistant：
-sudo launchctl kickstart -k system/ai.openclaw.travel-api
+# MacBook：推送产物（SSH 别名 codinglog-deploy → mac@192.168.31.3）
+REL=$(date +%Y-%m-%d)-<slug>-$(git rev-parse --short HEAD)
+ssh codinglog-deploy "mkdir -p /Users/mac/coding-log-web-releases/$REL/dist"
+rsync -az --delete docs/.vuepress/dist/ codinglog-deploy:/Users/mac/coding-log-web-releases/$REL/dist/
+ssh codinglog-deploy "chmod -R a+rX /Users/mac/coding-log-web-releases/$REL; chmod 755 /Users/mac/coding-log-web-releases/$REL /Users/mac/coding-log-web-releases/$REL/dist"
+
+# Mac mini：只切软链，不构建
+ssh codinglog-deploy "cd /Users/mac/coding-log-web-releases && ln -s $REL .current.tmp && mv -h .current.tmp current && readlink current"
 ```
 
-8080 仅用于回滚：重启前确认 `lsof -nP -iTCP:8080 -sTCP:LISTEN`，检查 `output.log` 出现 `Compiled successfully`。公网由 nginx 静态 release 提供，不受 8080 影响。
+Mac mini 源码副本只用于运行与排障：`cd /Users/mac/coding-log-web && git pull --ff-only origin master`，不要再跑 build。8080 回滚服务保留；仅当改了 `backend/travel_assistant` 才需要 `sudo launchctl kickstart -k system/ai.openclaw.travel-api`。
 
 > 当前公网是静态 build；源码改动必须重新 build 并切 release，不能靠编辑线上文件生效。
 
