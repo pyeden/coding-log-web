@@ -1,5 +1,6 @@
 """规则版旅行规划器：景点选择、每日行程与预算估算。"""
 
+import math
 from datetime import date, timedelta
 from typing import Dict, List, Tuple
 
@@ -10,6 +11,23 @@ LEVELS = ["经济", "舒适", "品质"]
 HOTEL_MULT = {"经济": 0.6, "舒适": 1.0, "品质": 1.5}
 FOOD_DAY = {"经济": 100, "舒适": 180, "品质": 300}
 TRANSPORT_DAY = {"经济": 40, "舒适": 70, "品质": 120}
+
+
+def _distance_km(a: Dict, b: Dict) -> float:
+    """两点球面距离（km），缺坐标返回 0。"""
+    if not all(a.get(k) is not None for k in ("lat", "lng")) or not all(b.get(k) is not None for k in ("lat", "lng")):
+        return 0.0
+    lat1, lon1, lat2, lon2 = map(math.radians, [a["lat"], a["lng"], b["lat"], b["lng"]])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
+
+
+def _day_distance(points: List[Dict]) -> float:
+    total = 0.0
+    for prev, cur in zip(points, points[1:]):
+        total += _distance_km(prev, cur)
+    return total
 
 
 def _profile_for(destination: str) -> Tuple[str, Dict]:
@@ -122,11 +140,27 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
 
         items.sort(key=lambda item: item["time"])
         tickets_per_day.append(tickets)
+
+        # 当日通勤距离（按景点顺序）
+        stops = [item for item in items if item.get("lat") is not None and item.get("lng") is not None]
+        distance = _day_distance(stops)
+
+        # 当日花费：门票 + 餐饮 + 市内交通（按人）+ 当晚住宿（最后一晚不计）
+        nights_here = 1 if index < days - 1 else 0
+        spend = (
+            tickets * travelers
+            + FOOD_DAY[food_level] * travelers
+            + TRANSPORT_DAY[food_level] * travelers
+            + round(profile["hotel_base"] * HOTEL_MULT[food_level]) * travelers * nights_here
+        )
+
         payload.append({
             "date": current.isoformat(),
             "weekday": WEEKDAYS[current.weekday()],
             "theme": _theme(today),
             "items": items,
+            "distance_km": round(distance, 1),
+            "spend": spend,
         })
 
     return payload, tickets_per_day

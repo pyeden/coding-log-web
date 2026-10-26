@@ -15,9 +15,16 @@
       <div ref="mapEl" class="ta-map"></div>
       <div v-if="!result" class="ta-map-empty">生成行程后，这里会显示每天的路线与景点位置</div>
       <div v-else class="ta-map-legend">
-        <span v-for="(day, i) in result.days" :key="day.date">
+        <button class="ta-legend-chip" :class="{ active: activeDay === null }" @click="focusDay(null)">全部</button>
+        <button
+          v-for="(day, i) in result.days"
+          :key="day.date"
+          class="ta-legend-chip"
+          :class="{ active: activeDay === i }"
+          @click="focusDay(i)"
+        >
           <i :style="{ background: dayColors[i % dayColors.length] }"></i>{{ day.date }} · {{ day.theme }}
-        </span>
+        </button>
         <em v-if="!hasCoords">该目的地暂无坐标数据</em>
       </div>
     </div>
@@ -67,6 +74,10 @@
         <span class="ta-hint">预计 1–3 秒返回，可反复调整后重新生成</span>
       </div>
     </form>
+
+    <div v-if="loading" class="ta-skeleton" aria-hidden="true">
+      <div class="ta-skeleton-row" v-for="n in 3" :key="n"></div>
+    </div>
 
     <p v-if="error" class="ta-error" role="alert">{{ error }}</p>
 
@@ -122,6 +133,8 @@
             <div class="ta-day-date">
               <strong>{{ day.date }}</strong>
               <span>{{ day.weekday }}</span>
+              <b v-if="day.distance_km" class="ta-day-stat">{{ day.distance_km }} km</b>
+              <b v-if="day.spend" class="ta-day-stat">≈ ¥{{ money(day.spend) }}</b>
             </div>
             <em>{{ day.theme }}</em>
           </header>
@@ -148,6 +161,7 @@
 
       <div class="ta-result-actions">
         <button class="ta-ghost" type="button" @click="copyPlan">{{ copied ? '已复制 ✓' : '复制行程' }}</button>
+        <button class="ta-ghost" type="button" @click="sharePlan">{{ shared ? '链接已复制 ✓' : '分享链接' }}</button>
         <button class="ta-ghost" type="button" @click="result = null">重新规划</button>
       </div>
     </div>
@@ -184,6 +198,9 @@ export default {
       copied: false,
       map: null,
       mapLayerGroup: null,
+      dayBounds: [],
+      activeDay: null,
+      shared: false,
       dayColors: ['#22d3ee', '#8b5cf6', '#f472b6', '#a3e635', '#fbbf24', '#fb7185'],
     }
   },
@@ -200,6 +217,7 @@ export default {
     },
   },
   mounted () {
+    this.prefillFromQuery()
     this.initMap()
   },
   beforeDestroy () {
@@ -210,6 +228,7 @@ export default {
   },
   watch: {
     result () {
+      this.activeDay = null
       this.$nextTick(() => this.renderMap())
     },
   },
@@ -239,6 +258,7 @@ export default {
       this.mapLayerGroup.clearLayers()
       if (!this.result) return
       const bounds = []
+      this.dayBounds = []
       this.result.days.forEach((day, dayIndex) => {
         const color = this.dayColors[dayIndex % this.dayColors.length]
         const points = day.items
@@ -265,6 +285,7 @@ export default {
           L.marker(latlng, { icon }).bindPopup(popup).addTo(this.mapLayerGroup)
           bounds.push(latlng)
         })
+        this.dayBounds[dayIndex] = points.map(p => p.latlng)
       })
       if (!bounds.length) return
       if (bounds.length === 1) {
@@ -273,6 +294,53 @@ export default {
         this.map.fitBounds(bounds, { padding: [36, 36], maxZoom: 13 })
       }
       setTimeout(() => this.map && this.map.invalidateSize(), 200)
+    },
+    prefillFromQuery () {
+      const params = new URLSearchParams(window.location.search)
+      if (!params.has('destination')) return
+      const read = (key, fallback) => (params.has(key) ? params.get(key) : fallback)
+      this.form.destination = read('destination', this.form.destination)
+      this.form.start_date = read('start', this.form.start_date)
+      this.form.end_date = read('end', this.form.end_date)
+      this.form.budget = Number(read('budget', this.form.budget)) || this.form.budget
+      this.form.travelers = Number(read('travelers', this.form.travelers)) || this.form.travelers
+      const prefs = read('prefs', '')
+      if (prefs) this.form.preferences = prefs.split(',').filter(Boolean)
+      if (params.get('auto') === '1') this.$nextTick(() => this.submit())
+    },
+    focusDay (index) {
+      if (!this.map) return
+      this.activeDay = index
+      const points = index === null
+        ? this.dayBounds.flat().filter(Boolean)
+        : (this.dayBounds[index] || [])
+      if (!points.length) return
+      if (points.length === 1) {
+        this.map.setView(points[0], 13)
+      } else {
+        this.map.fitBounds(points, { padding: [40, 40], maxZoom: 14 })
+      }
+    },
+    sharePlan () {
+      const params = new URLSearchParams({
+        destination: this.form.destination,
+        start: this.form.start_date,
+        end: this.form.end_date,
+        budget: String(this.form.budget),
+        travelers: String(this.form.travelers),
+        prefs: this.form.preferences.join(','),
+        auto: '1',
+      })
+      const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`
+      const done = () => {
+        this.shared = true
+        setTimeout(() => { this.shared = false }, 2000)
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(() => this.fallbackCopy(url, done))
+      } else {
+        this.fallbackCopy(url, done)
+      }
     },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
@@ -379,7 +447,24 @@ export default {
   font-size: .72rem; color: var(--site-muted, #8ea3b8);
   background-color: rgba(255, 255, 255, .02);
 }
-.ta-map-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.ta-legend-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .15rem .5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--site-muted, #8ea3b8);
+  font-size: .72rem; cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.ta-legend-chip:hover { color: var(--site-text, #dbe7f3); }
+.ta-legend-chip.active { color: var(--site-accent-text, #67e8f9); border-color: rgba(34,211,238,.4); background-color: rgba(34,211,238,.08); }
+.ta-day-stat {
+  padding: .1rem .4rem; border-radius: 5px;
+  font-size: .68rem; font-weight: 500;
+  color: var(--site-muted, #8ea3b8);
+  background-color: rgba(255,255,255,.04);
+}
 .ta-map-legend i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
 .ta-map-legend em { font-style: normal; color: #fda4af; }
 :deep(.ta-map-pin span) {
@@ -503,6 +588,15 @@ export default {
 }
 @keyframes ta-spin { to { transform: rotate(360deg); } }
 .ta-hint { font-size: .76rem; color: var(--site-muted, #8ea3b8); }
+.ta-skeleton { margin-top: 1.2rem; display: grid; gap: .6rem; }
+.ta-skeleton-row {
+  height: 64px; border-radius: 14px;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16));
+  background-image: linear-gradient(90deg, rgba(255,255,255,.03) 25%, rgba(255,255,255,.08) 37%, rgba(255,255,255,.03) 63%);
+  background-size: 400% 100%;
+  animation: ta-shimmer 1.4s ease infinite;
+}
+@keyframes ta-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 .ta-error {
   margin: 1rem 0 0; padding: .7rem .9rem;
   border: 1px solid rgba(244, 63, 94, .35);
