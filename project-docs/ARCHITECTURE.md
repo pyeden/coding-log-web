@@ -212,7 +212,7 @@ npm run build
 
 启动/构建时主题钩子依次执行：
 
-1. `setFrontmatter`：补齐 `title/date/permalink/categories/tags`，并合并 `extendFrontmatter`（当前注入 `author: xugaoyi`）。
+1. `setFrontmatter`：补齐 `title/date/permalink/categories/tags`，并合并 `extendFrontmatter`（当前注入 `author: 三木`）。
 2. `getSidebarData`：生成结构化侧边栏与目录页元数据。
 3. `createPage/deletePage`：按 `category/tag/archive` 开关维护 `@pages/`。
 
@@ -286,10 +286,10 @@ TravelAssistant.vue
 
 | 项 | 当前值 | 位置 |
 | --- | --- | --- |
-| 站点域名常量 | `xugaoyi.com`（模板残留，与实际域名不符） | `config.ts` 顶部 `DOMAIN_NAME`/`WEB_SITE` |
+| 站点域名常量 | `seres-ai.com` | `config.ts` 顶部 `DOMAIN_NAME`/`WEB_SITE` |
 | 站点标题 | 三木 vlog | `locales['/'].title` |
 | 导航仓库链接 | `pyeden` | `themeConfig.repo` |
-| 博主/作者 | Evan Xu / xugaoyi（链接指向 pyeden） | `blogger`、`author`、`extendFrontmatter` |
+| 博主/作者 | 三木（链接指向 pyeden） | `blogger`、`author`、`extendFrontmatter` |
 | 评论站点名 | 三木 vlog | `enhanceApp.js` 的 `ARTALK_SITE`；Artalk `site_default` |
 | Artalk 服务 | `127.0.0.1:23366`，SQLite | `/Users/mac/artalk/`（Mac mini，仓库外） |
 | 旅行助手服务 | `127.0.0.1:8090` | `backend/travel_assistant/` + LaunchAgent `ai.openclaw.travel-api` |
@@ -297,16 +297,16 @@ TravelAssistant.vue
 | 百度统计 | hm 码在 `config/baiduCode.ts` | 已启用 |
 | 备案 | 蜀ICP备2026018223号 | `footer.copyrightInfo` |
 | 图片 | `jsd.cdn.zzko.cn`、`raw.githubusercontent.com` | 文章内远程引用 |
-| CNAME | `docs/.vuepress/public/CNAME` 内容为 `b.xugaoyi.com` | 原样发布；与实际域名不符，属模板残留 |
+| CNAME | `docs/.vuepress/public/CNAME` 内容为 `seres-ai.com` | 原样发布；与站点域名一致 |
 
 ## 10. 现状评估与风险
 
 1. **P0 线上架构（已处理 2026-10-26）**：已切换为 nginx 静态托管 `coding-log-web-releases/current/dist`；8080 `vuepress dev` 保留 24–48h 作为回滚。执行记录见 `STATIC-HOSTING-PLAN.md`。
 2. **P0 Artalk 启动方式（已处理 2026-10-26）**：已改为 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`（wrapper + `RunAtLoad`/`KeepAlive`），开机即启动、不依赖登录；仓库副本在 `project-docs/ops/`。
-3. **P1 站点身份残留**：`DOMAIN_NAME=xugaoyi.com`、作者/博主仍是 xugaoyi/Evan Xu、`public/CNAME=b.xugaoyi.com`、页脚版权为 Evan Xu；与「三木 vlog」「seres-ai.com」不一致，影响 sitemap、SEO 与编辑链接。
+3. **P1 站点身份（已处理 2026-10-26）**：`DOMAIN_NAME`、`repo`、`blogger`/`author`、`public/CNAME`、页脚版权已统一为 `seres-ai.com` / 三木；主题 Vdoing 的 MIT 归属链接保留。
 4. **P1 评论链路与 nginx 强耦合**：Artalk 使用同源 `window.location.origin`，必须保留 `/api/` 与 `/sidebar/` 反代；同时 `/api/travel/` 必须保持比 `/api/` 更长。
 5. **P1 凭据边界**：`config.ts` 已无 `clientID/clientSecret`（2026-10-26 复核），旧评论账号信息只在 git 历史；Artalk `app_key` 在仓库外 `config.yml`；高德密钥在 gitignore 的 `.env`。任何情况下不要把上述值写进仓库。
-6. **P1 依赖不可复现**：`package-lock.json`、`yarn.lock`、`pnpm-lock.yaml` 均被 `.gitignore` 忽略；本机虽有 `package-lock.json` 但未跟踪，CI 仍用 `yarn` 无锁安装。
+6. **P1 依赖锁定（已处理 2026-10-26）**：已提交 `package-lock.json`；CI 改为 `npm ci` + `npm run build`。`yarn.lock`/`pnpm-lock.yaml` 仍忽略，项目统一使用 npm。
 7. **P2 `docs/07.hello_agents` 已无 docsify 残留**：2026-10-26 实际 `ls -a` 只见编号 `.md`，旧文档所述 `index.html`、`_sidebar*.md`、`.nojekyll`、`README_EN.md` 均不存在，原风险关闭。仓库根 `project-docs/hello_agents-source/` 目前是未跟踪的本地素材，除非明确需要，不要提交。
 8. **P2 `vdoing/` 未启用**：容易误改；主题定制应先确认加载路径。
 9. **P2 无 lint / 单测 / 构建门禁**：CI 只负责部署，不校验 frontmatter、死链、重复 permalink。

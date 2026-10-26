@@ -69,7 +69,7 @@ author:
 - `permalink`：建议保留主题生成的 `/pages/<6位hex>/`，或使用唯一语义路径；**发布后不改**（外链与评论都依赖它）。
 - `categories`：可省略（按目录自动推导）；需要跨目录归类时显式填写。
 - `tags`：可省略但主题会生成空标签项，建议至少填一个。
-- `author`：可省略，`extendFrontmatter` 会注入默认作者（当前仍是模板作者，长期应改成真实作者）。
+- `author`：可省略，`extendFrontmatter` 会注入默认作者（当前默认作者为「三木」）。
 - `comment: false`：关闭该页评论；Artalk 挂载逻辑会识别。
 
 ### 3.2 栏目目录页（`docs/00.目录页/NN.栏目.md`）
@@ -333,9 +333,9 @@ sudo launchctl kickstart -k system/ai.openclaw.travel-api
 
 1. **P0 线上架构（已处理 2026-10-26）**：已切换为 nginx + `coding-log-web-releases/current/dist` 静态托管；8080 保留回滚。执行记录见 `STATIC-HOSTING-PLAN.md`。
 2. **P0 Artalk 持久化（已处理 2026-10-26）**：`ai.openclaw.artalk` 已改为 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`（`UserName=mac` + wrapper 循环 + `RunAtLoad`/`KeepAlive`），开机即启动、不依赖登录；仓库副本在 `project-docs/ops/`；用户 LaunchAgent 作为回退保留。
-3. **P1 站点身份**：统一替换 `DOMAIN_NAME`、`repo`、`blogger`、`author`、`extendFrontmatter`、`public/CNAME`、页脚版权，避免指向 xugaoyi。
+3. **P1 站点身份（已处理 2026-10-26）**：`DOMAIN_NAME`、`repo`、`blogger`、`author`、`extendFrontmatter`、`public/CNAME`、页脚版权已统一为 `seres-ai.com` / 三木；主题 Vdoing 的 MIT 归属链接保留。
 4. **P1 评论/旅行助手路由**：nginx 中 `/api/`、`/api/travel/`、`/sidebar/`、`/_AMapService/` 任何调整都要回归评论和旅行助手。
-5. **P1 依赖锁定**：提交 `package-lock.json`，CI 改用 `npm ci`；同步修正 `ci.yml` 的 yarn 流程。
+5. **P1 依赖锁定（已处理 2026-10-26）**：已提交 `package-lock.json`，CI 改为 `npm ci` + `npm run build`。
 6. **P2 CI 门禁**：增加 frontmatter 校验（必填字段、重复 permalink）、死链检查和 `npm run build` 失败即阻断。
 7. **P2 双副本治理**：明确「MacBook 编辑、Mac mini 只读运行」，发布前校验两端 HEAD；避免线上手改。
 8. **P3 仓库卫生**：`.gitignore` 增加 `.idea/`、`output.log`；处理未跟踪的 `project-docs/hello_agents-source/`；删除未启用的 `vdoing/` 或明确标注为参考副本。
