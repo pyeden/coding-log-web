@@ -2,11 +2,33 @@
  * 提示：如您想使用JS版本的配置文件可参考：https://github.com/xugaoyi/vuepress-theme-vdoing/tree/a2f03e993dd2f2a3afdc57cf72adfc6f1b6b0c32/docs/.vuepress
  */
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
 import { defineConfig4CustomTheme, UserPlugins } from 'vuepress/config'
 import { VdoingThemeConfig } from 'vuepress-theme-vdoing/types'
 import dayjs from 'dayjs'
 import baiduCode from './config/baiduCode' // 百度统计hm码
 import htmlModules from './config/htmlModules' // 自定义插入的html块
+
+
+// 读取仓库根目录 .env（不提交），用于高德 JS API 的 Key 注入
+function readRootEnv(): Record<string, string> {
+  try {
+    const file = resolve(__dirname, '../../.env')
+    const text = readFileSync(file, 'utf-8')
+    return text.split('\n').reduce((acc, line) => {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) return acc
+      const idx = trimmed.indexOf('=')
+      acc[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '')
+      return acc
+    }, {} as Record<string, string>)
+  } catch (e) {
+    return {}
+  }
+}
+
+const ROOT_ENV = readRootEnv()
+const AMAP_JS_KEY = process.env.AMAP_JS_KEY || ROOT_ENV.AMAP_JS_KEY || ''
 
 const DOMAIN_NAME = 'xugaoyi.com' // 域名 (不带https)
 const WEB_SITE = `https://${DOMAIN_NAME}` // 网址
@@ -233,6 +255,13 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     ],
     ['meta', { name: 'baidu-site-verification', content: '7F55weZDDc' }], // 百度统计的站长验证（你可以去掉）
     ['meta', { name: 'theme-color', content: '#11a8cd' }], // 移动浏览器主题颜色
+    ...(AMAP_JS_KEY
+      ? [[
+          'script',
+          {},
+          `window.__AMAP_JS_KEY__=${JSON.stringify(AMAP_JS_KEY)};window._AMapSecurityConfig={serviceHost:'https://seres-ai.com/_AMapService'};`,
+        ]] as any
+      : []),
     // [
     //   'script',
     //   {
@@ -354,6 +383,11 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
       // Artalk 管理面板（/sidebar/ 及其 assets）
       '/sidebar': {
         target: 'http://127.0.0.1:23366',
+        changeOrigin: true,
+      },
+      // 高德 JS API 安全密钥代理
+      '/_AMapService': {
+        target: 'http://127.0.0.1:8090',
         changeOrigin: true,
       },
     },

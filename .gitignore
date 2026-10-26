@@ -31,3 +31,6 @@ urls.txt
 backend/travel_assistant/.venv/
 __pycache__/
 *.pyc
+
+# 本地环境变量（高德 Key 等）
+.env

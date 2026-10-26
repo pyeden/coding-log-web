@@ -175,6 +175,40 @@ import 'leaflet/dist/leaflet.css'
 const pad = value => String(value).padStart(2, '0')
 const formatDate = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 
+
+const PI = Math.PI
+const A = 6378245.0
+const EE = 0.00669342162296594323
+function outOfChina (lng, lat) {
+  return !(lng > 73.66 && lng < 135.05 && lat > 3.86 && lat < 53.55)
+}
+function transformLat (lng, lat) {
+  let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng))
+  ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
+  ret += (20.0 * Math.sin(lat * PI) + 40.0 * Math.sin(lat / 3.0 * PI)) * 2.0 / 3.0
+  ret += (160.0 * Math.sin(lat / 12.0 * PI) + 320 * Math.sin(lat * PI / 30.0)) * 2.0 / 3.0
+  return ret
+}
+function transformLng (lng, lat) {
+  let ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng))
+  ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
+  ret += (20.0 * Math.sin(lng * PI) + 40.0 * Math.sin(lng / 3.0 * PI)) * 2.0 / 3.0
+  ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0
+  return ret
+}
+function wgs84ToGcj02 (lng, lat) {
+  if (outOfChina(lng, lat)) return [lng, lat]
+  let dLat = transformLat(lng - 105.0, lat - 35.0)
+  let dLng = transformLng(lng - 105.0, lat - 35.0)
+  const radLat = lat / 180.0 * PI
+  let magic = Math.sin(radLat)
+  magic = 1 - EE * magic * magic
+  const sqrtMagic = Math.sqrt(magic)
+  dLat = (dLat * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI)
+  dLng = (dLng * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI)
+  return [lng + dLng, lat + dLat]
+}
+
 export default {
   name: 'TravelAssistant',
   data () {
@@ -197,6 +231,7 @@ export default {
       result: null,
       copied: false,
       map: null,
+      provider: 'leaflet',
       mapLayerGroup: null,
       dayBounds: [],
       activeDay: null,
@@ -225,6 +260,10 @@ export default {
       this.map.remove()
       this.map = null
     }
+    if (this.amap) {
+      this.amap.destroy()
+      this.amap = null
+    }
   },
   watch: {
     result () {
@@ -233,8 +272,43 @@ export default {
     },
   },
   methods: {
-    initMap () {
+    async initMap () {
       if (!this.$refs.mapEl || this.map) return
+      if (window.__AMAP_JS_KEY__) {
+        try {
+          await this.loadAMap()
+          this.initAmap()
+          return
+        } catch (e) {
+          console.warn('[travel] 高德地图初始化失败，回退 Leaflet', e)
+        }
+      }
+      this.initLeaflet()
+    },
+    loadAMap () {
+      if (window.AMap) return Promise.resolve()
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(window.__AMAP_JS_KEY__)}&plugin=AMap.Scale,AMap.ToolBar`
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    },
+    initAmap () {
+      this.provider = 'amap'
+      const dark = !document.body.classList.contains('theme-mode-light') && !document.body.classList.contains('theme-mode-read')
+      this.amap = new window.AMap.Map(this.$refs.mapEl, {
+        zoom: 4,
+        center: [108.9, 34.5],
+        viewMode: '2D',
+        mapStyle: dark ? 'amap://styles/darkblue' : 'amap://styles/normal',
+      })
+      this.amapOverlays = []
+      this.renderMap()
+    },
+    initLeaflet () {
+      this.provider = 'leaflet'
       this.map = L.map(this.$refs.mapEl, {
         center: [34.5, 108.9],
         zoom: 4,
@@ -254,6 +328,10 @@ export default {
       this.renderMap()
     },
     renderMap () {
+      if (this.provider === 'amap') {
+        this.renderAMap()
+        return
+      }
       if (!this.map || !this.mapLayerGroup) return
       this.mapLayerGroup.clearLayers()
       if (!this.result) return
@@ -309,6 +387,17 @@ export default {
       if (params.get('auto') === '1') this.$nextTick(() => this.submit())
     },
     focusDay (index) {
+      if (this.provider === 'amap') {
+        if (!this.amap) return
+        this.activeDay = index
+        const points = index === null
+          ? this.dayBounds.flat().filter(Boolean)
+          : (this.dayBounds[index] || [])
+        if (!points.length) return
+        if (points.length === 1) this.amap.setZoomAndCenter(13, points[0])
+        else this.amap.setFitView(points.map(p => new window.AMap.Marker({ position: p })), false, [40, 40, 40, 40], 14)
+        return
+      }
       if (!this.map) return
       this.activeDay = index
       const points = index === null
@@ -341,6 +430,53 @@ export default {
       } else {
         this.fallbackCopy(url, done)
       }
+    },
+
+    renderAMap () {
+      if (!this.amap) return
+      this.amap.clearMap()
+      this.amapOverlays = []
+      this.dayBounds = []
+      if (!this.result) return
+      const { AMap } = window
+      this.result.days.forEach((day, dayIndex) => {
+        const color = this.dayColors[dayIndex % this.dayColors.length]
+        const points = day.items
+          .filter(item => typeof item.lat === 'number' && typeof item.lng === 'number')
+          .map(item => {
+            const [lng, lat] = wgs84ToGcj02(item.lng, item.lat)
+            return { item, position: [lng, lat] }
+          })
+        if (!points.length) return
+        const dayLatLngs = points.map(p => p.position)
+        if (points.length > 1) {
+          const line = new AMap.Polyline({
+            path: dayLatLngs,
+            strokeColor: color,
+            strokeWeight: 3,
+            strokeOpacity: 0.8,
+            strokeStyle: 'dashed',
+            lineJoin: 'round',
+          })
+          this.amap.add(line)
+          this.amapOverlays.push(line)
+        }
+        points.forEach(({ item, position }, index) => {
+          const marker = new AMap.Marker({
+            position,
+            content: `<span class="ta-map-pin" style="--pin:${color}"><span>${index + 1}</span></span>`,
+            offset: new AMap.Pixel(-13, -13),
+          })
+          marker.on('click', () => {
+            const info = `${item.time} ${item.title}<br><small>${item.type}${item.cost ? ' · ¥' + item.cost + '/人' : ''}</small>`
+            new AMap.InfoWindow({ content: info, offset: new AMap.Pixel(0, -18) }).open(this.amap, position)
+          })
+          this.amap.add(marker)
+          this.amapOverlays.push(marker)
+        })
+        this.dayBounds[dayIndex] = dayLatLngs
+      })
+      if (this.amapOverlays.length) this.amap.setFitView(this.amapOverlays, false, [40, 40, 40, 40], 14)
     },
     togglePreference (item) {
       const index = this.form.preferences.indexOf(item)
