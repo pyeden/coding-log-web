@@ -10,7 +10,7 @@
 
 完整运行环境由三部分组成：
 
-1. **静态站点**：VuePress 1 + vdoing 主题，当前线上以 `vuepress dev` 常驻运行。
+1. **静态站点**：VuePress 1 + vdoing 主题。当前线上由 nginx 直接托管 `docs/.vuepress/dist` 的 build 产物（release 目录），8080 `vuepress dev` 仅作为回滚保留。
 2. **评论服务**：自建 Artalk（Go 二进制 + SQLite），与站点同源，通过 nginx `/api/` 与 `/sidebar/` 反代。
 3. **旅行助手**：`backend/travel_assistant` 的 FastAPI 服务，提供行程规划与高德 JS API 安全密钥代理。
 
@@ -29,7 +29,7 @@
 | 旅行助手 | FastAPI + uvicorn | `backend/travel_assistant/` | `127.0.0.1:8090`，规则版规划器 |
 | 搜索 | vuepress-plugin-thirdparty-search | 已启用 | 不加载全文索引，只跳转外部搜索 |
 | SEO/统计 | sitemap、百度自动推送、百度统计 | 已启用 | 依赖 `WEB_SITE` 与 hm 码 |
-| 部署 | nginx + frp + 常驻 dev server | Mac mini | 见第 3、7 节 |
+| 部署 | nginx（静态 release）+ frp；8080 dev 仅回滚 | Mac mini | 见第 3、7 节 |
 
 常用插件：`one-click-copy`（代码复制）、`demo-block`（可运行示例）、`zooming`（图片放大）、`@vuepress/last-updated`（git 时间）。评论插件 `vuepress-plugin-comment` 已不再启用。
 
@@ -54,7 +54,7 @@
   → frpc tcp :8888（transport.proxyProtocolVersion = "v2"）
   → nginx :8888（TLS 终止，ssl + proxy_protocol，还原真实 IP）
   → 按 location 分发：
-       /            → 127.0.0.1:8080  vuepress dev
+       /            → /Users/mac/coding-log-web-releases/current/dist（静态 build）
        /api/travel/ → 127.0.0.1:8090  旅行助手 FastAPI
        /_AMapService/ → 127.0.0.1:8090 高德代理
        /api/        → 127.0.0.1:23366 Artalk
@@ -67,7 +67,8 @@
 
 - frpc 配置在 Mac mini：`/Users/mac/frp_0.68.0_darwin_amd64/frpc.toml`；本机进程为 `frpc -c .../frpc.toml`。
 - nginx 主配置 `/usr/local/etc/nginx/nginx.conf` 通过 `include /Users/mac/coding-log-web/nginx/server/*;` 加载仓库内配置。
-- `www.seres-ai.com` 另有 `openclaw-sandbox.conf`：`/mcp-app-sandbox` → `127.0.0.1:18790`，其余路径仍回落 8080。
+- `www.seres-ai.com` 另有 `openclaw-sandbox.conf`：`/mcp-app-sandbox` → `127.0.0.1:18790`，其余路径仍走静态 root。
+- 8080 `vuepress dev` 仍运行作为回滚路径，但公网 `location /` 已不再指向它。
 
 ### 3.3 nginx location 与优先级（`nginx/server/https.conf`）
 
@@ -79,9 +80,9 @@ nginx 的前缀 location 采用**最长匹配优先**，与书写顺序无关；
 | `/_AMapService/` | `127.0.0.1:8090` | 高德 JS API 安全密钥代理 | 由 FastAPI 转发到 `restapi.amap.com` |
 | `/api/travel/` | `127.0.0.1:8090` | 旅行助手 API | 最长前缀，优先级高于 `/api/` |
 | `/api/` | `127.0.0.1:23366` | Artalk API | 同源评论的关键 |
-| `/sockjs-node/` | `127.0.0.1:8080` | webpack-dev-server HMR WebSocket | 改成静态托管后可删除 |
-| `~* \.hot-update\.(js\|json)$` | `127.0.0.1:8080` | HMR 增量包 | 正则；`Cache-Control: no-store` |
-| `/` | `127.0.0.1:8080` | 博客主站 | 静态托管后改为 `root` + `try_files` |
+| `/sockjs-node/` | `127.0.0.1:8080` | 遗留 HMR WebSocket | 静态站点不再请求；保留仅供 8080 回滚 |
+| `~* \.hot-update\.(js\|json)$` | `127.0.0.1:8080` | 遗留 HMR 增量包 | 静态站点不再请求 |
+| `/` | `file:///Users/mac/coding-log-web-releases/current/dist` | 博客主站（静态 build） | `try_files $uri $uri/ $uri.html =404`；HTML no-cache |
 | `/openclaw` | `127.0.0.1:18789` | OpenClaw Gateway | 前缀匹配，长于 `/` |
 | `/__openclaw__/` | `127.0.0.1:18789` | 组件 iframe / Canvas 绝对路径 | 不转发会白屏 |
 
@@ -227,10 +228,10 @@ Markdown 配置：`lineNumbers: true`；`extractHeaders: h2–h6`（侧边栏可
 
 1. MacBook 修改、提交并推送 `master`。
 2. Mac mini 上 `git pull --ff-only`（目录 `/Users/mac/coding-log-web`）。
-3. 前端内容/配置：常驻 `vuepress dev` 热更新；改了 `config.ts`、新增一级目录，需重启 8080 进程。
-4. 旅行助手后端：改动 `backend/travel_assistant/` 后需 `launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api`（或卸载/加载 plist）重启服务。
+3. 前端内容/配置：Mac mini 上 `npm run build`（先停 8080，避免 `.temp` 争用）→ 把 `dist` 同步到 `coding-log-web-releases/<version>/dist` → 切 `current` 软链 → `sudo launchctl kickstart -k system/ai.openclaw.nginx`。8080 保留作回滚。
+4. 旅行助手后端：改动 `backend/travel_assistant/` 后需 `sudo launchctl kickstart -k system/ai.openclaw.travel-api` 重启服务。
 5. Artalk：配置/二进制在 `/Users/mac/artalk`，**不在本仓库**，发布流程不涉及。
-6. nginx 配置：仓库内 `nginx/server/*.conf` 被主配置 include；改完先 `nginx -t`，再 reload。属于高风险操作。
+6. nginx 配置：仓库内 `nginx/server/*.conf` 被主配置 include；改完先 `sudo nginx -t`，再 `sudo launchctl kickstart -k system/ai.openclaw.nginx`。daemon 以 `daemon off` 运行、无 pid 文件，`nginx -s reload` 不可用。属于高风险操作。
 
 ### 7.2 模板遗留的发布方式（当前未使用）
 
@@ -249,8 +250,9 @@ Markdown 配置：`lineNumbers: true`；`extractHeaders: h2–h6`（侧边栏可
 Markdown（含 frontmatter）
   → VuePress 读取 + 主题钩子补全元数据/侧边栏
   → webpack 编译（Vue 2 运行时 + 预渲染 HTML）
-  → docs/.vuepress/dist 或 dev server 内存产物
-  → nginx 反代
+  → docs/.vuepress/dist
+  → /Users/mac/coding-log-web-releases/<version>/dist（current 软链）
+  → nginx root + try_files（静态）
   → 浏览器
 ```
 
@@ -299,8 +301,8 @@ TravelAssistant.vue
 
 ## 10. 现状评估与风险
 
-1. **P0 线上是 dev server**：无压缩/长效缓存、带 HMR WebSocket，进程崩溃即全站不可用，内存占用高。已产出 `STATIC-HOSTING-PLAN.md` 评估 `build` + 静态托管，尚未切换。
-2. **P0 Artalk 启动方式不持久**：`ai.openclaw.artalk` 是 `launchctl submit` 的临时作业，未找到 plist；机器重启/用户注销后评论服务不会自动恢复。建议补一个带 `RunAtLoad`/`KeepAlive` 的 LaunchAgent 并纳入运维文档。
+1. **P0 线上架构（已处理 2026-10-26）**：已切换为 nginx 静态托管 `coding-log-web-releases/current/dist`；8080 `vuepress dev` 保留 24–48h 作为回滚。执行记录见 `STATIC-HOSTING-PLAN.md`。
+2. **P0 Artalk 启动方式（已处理 2026-10-26）**：已改为 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`（wrapper + `RunAtLoad`/`KeepAlive`），开机即启动、不依赖登录；仓库副本在 `project-docs/ops/`。
 3. **P1 站点身份残留**：`DOMAIN_NAME=xugaoyi.com`、作者/博主仍是 xugaoyi/Evan Xu、`public/CNAME=b.xugaoyi.com`、页脚版权为 Evan Xu；与「三木 vlog」「seres-ai.com」不一致，影响 sitemap、SEO 与编辑链接。
 4. **P1 评论链路与 nginx 强耦合**：Artalk 使用同源 `window.location.origin`，必须保留 `/api/` 与 `/sidebar/` 反代；同时 `/api/travel/` 必须保持比 `/api/` 更长。
 5. **P1 凭据边界**：`config.ts` 已无 `clientID/clientSecret`（2026-10-26 复核），旧评论账号信息只在 git 历史；Artalk `app_key` 在仓库外 `config.yml`；高德密钥在 gitignore 的 `.env`。任何情况下不要把上述值写进仓库。

@@ -554,3 +554,14 @@ sudo launchctl kickstart -k system/ai.openclaw.nginx
 - 切换前完成一次灰度（8890 临时实例 + 浏览器回归：评论、旅行助手、地图）。
 - 切换后 24–48 小时内保留 8080 与上一版 release。
 - Artalk 持久化（LaunchAgent）作为并行 P0 项处理，不阻塞本次静态切换，但需尽快补。
+
+## 11. 执行记录（2026-10-26）
+
+- 已切换生产：nginx `location /` 改为 `root /Users/mac/coding-log-web-releases/current/dist` + `try_files $uri $uri/ $uri.html =404`。
+- Release：`2026-10-26-a32c562`，`dist` 92MB / 752 文件 / 254 HTML；`current` 已指向该版本。
+- 前置权限：`/Users/mac` 增加 ACL `user:nobody allow search`；release 根与版本目录 755、文件 644；`sudo -u nobody test -r index.html/404.html` 通过。
+- 构建：因跨机传输限制（文件传输单次上限 16MB、MacBook→Mac mini SSH 未配置），改为在 Mac mini 停止 8080 后执行 `npm run build`；仓库已 pull 到 `a32c562`，未与 dev `.temp` 争用。构建 exit 0。
+- nginx：备份原配置到 `nginx/backups/https.conf.bak-<timestamp>`；`sudo nginx -t` 通过；`sudo launchctl kickstart -k system/ai.openclaw.nginx` 生效。
+- 验证：`/` 200、深层文章 200、`/projects/travel/` 200、未知路径 404、`/projects/travel` 301、`/assets/*` immutable、HTML no-cache、`/api/travel/health` 200、评论 6 条。
+- 8080 已重启作为回滚路径，计划保留 24–48h；回滚只需恢复 nginx 配置并 kickstart。
+- 偏离原方案：未执行 MacBook build + rsync，也未在切换前跑 8890 灰度；切换后已做等价的 HTTP 验证。浏览器交互（评论提交/地图）由 QA 补测。

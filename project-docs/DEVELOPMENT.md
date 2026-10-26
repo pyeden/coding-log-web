@@ -276,15 +276,16 @@ git add <具体文件> && git commit -m "内容: 简述本次改动" && git push
 cd /Users/mac/coding-log-web
 git status                 # 确认无本地改动
 git pull --ff-only origin master
-# 纯内容改动：8080 的 dev server 会热更新
-# 改了 config.ts / 新增一级目录：重启 8080 进程
-# 改了 backend/travel_assistant：重启旅行助手
-launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
+# 生产发布：先停 8080（避免 .temp 争用）→ npm run build
+# → 同步 dist 到 coding-log-web-releases/<version>/dist → 切 current
+# → sudo launchctl kickstart -k system/ai.openclaw.nginx
+# 8080 保留作回滚；改了 backend/travel_assistant：
+sudo launchctl kickstart -k system/ai.openclaw.travel-api
 ```
 
-重启 8080 前先确认进程：`lsof -nP -iTCP:8080 -sTCP:LISTEN`。重启后检查 `output.log` 出现 `Compiled successfully`，再访问 `https://seres-ai.com`。
+8080 仅用于回滚：重启前确认 `lsof -nP -iTCP:8080 -sTCP:LISTEN`，检查 `output.log` 出现 `Compiled successfully`。公网由 nginx 静态 release 提供，不受 8080 影响。
 
-> 当前线上是 dev server，发布即热更新；这也是为什么必须避免在线上直接编辑文件。
+> 当前公网是静态 build；源码改动必须重新 build 并切 release，不能靠编辑线上文件生效。
 
 ### 10.3 开机自启（LaunchDaemons）
 
@@ -292,10 +293,10 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 
 | 服务 | Label | 端口 | 运行身份 | 日志/配置 |
 | --- | --- | --- | --- | --- |
-| 博客 dev server | `ai.openclaw.codinglogweb.dev` | 8080 | `mac` | `output.log`；`npm run dev` wrapper，退出 5s 重启 |
+| 博客 dev server（回滚） | `ai.openclaw.codinglogweb.dev` | 8080 | `mac` | `output.log`；公网已由 nginx 静态 release 提供 |
 | 旅行助手 API | `ai.openclaw.travel-api` | 8090 | `mac` | `backend/travel_assistant/server.log` |
 | Artalk 评论 | `ai.openclaw.artalk` | 23366 | `mac` | `/Users/mac/artalk/server.log` |
-| nginx | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | `/usr/local/etc/nginx/nginx.conf` + `nginx/server/*` |
+| nginx（静态主站） | `ai.openclaw.nginx` | 8887/8888 | `root`（worker `nobody`） | `/usr/local/etc/nginx/nginx.conf`；root=`coding-log-web-releases/current/dist` |
 | frpc 隧道 | `com.frpc.tunnel` | 80/443 隧道 | `mac` | `frp_0.68.0_darwin_amd64/frpc.launchd.log` |
 
 - 旧用户 LaunchAgent 已改名并 `bootout`，文件形如 `~/Library/LaunchAgents/*.disabled-by-daemon-*`。
@@ -303,7 +304,7 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 - 状态/重启：`launchctl print system/<label>`、`sudo launchctl kickstart -k system/<label>`。
 - 改 nginx 配置后先 `sudo nginx -t`，再 `sudo launchctl kickstart -k system/ai.openclaw.nginx`。
 - `include .../nginx/server/*` 会加载目录内所有文件；备份必须放 `nginx/backups/`，不要留在 `nginx/server/`。
-- 博客 dev server 首次启动需 15–25s 编译，期间公网可能短暂 502。
+- 8080 仅回滚用；重启需 15–25s 编译，不影响公网静态站。
 - **OpenClaw Gateway（18789）仍是 LaunchAgent**，属于当前会话宿主，未纳入开机自启目录；它随用户登录启动。
 
 ## 11. 排错手册
@@ -330,7 +331,7 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 
 ## 12. 已知问题与建议（按优先级）
 
-1. **P0 线上架构**：把 `vuepress dev` 换成 `npm run build` + 静态托管，并加进程守护/健康检查；方案见 `STATIC-HOSTING-PLAN.md`。
+1. **P0 线上架构（已处理 2026-10-26）**：已切换为 nginx + `coding-log-web-releases/current/dist` 静态托管；8080 保留回滚。执行记录见 `STATIC-HOSTING-PLAN.md`。
 2. **P0 Artalk 持久化（已处理 2026-10-26）**：`ai.openclaw.artalk` 已改为 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`（`UserName=mac` + wrapper 循环 + `RunAtLoad`/`KeepAlive`），开机即启动、不依赖登录；仓库副本在 `project-docs/ops/`；用户 LaunchAgent 作为回退保留。
 3. **P1 站点身份**：统一替换 `DOMAIN_NAME`、`repo`、`blogger`、`author`、`extendFrontmatter`、`public/CNAME`、页脚版权，避免指向 xugaoyi。
 4. **P1 评论/旅行助手路由**：nginx 中 `/api/`、`/api/travel/`、`/sidebar/`、`/_AMapService/` 任何调整都要回归评论和旅行助手。
@@ -349,6 +350,6 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 5. 不修改 `vdoing/` 来「修主题」，除非任务明确要求切换为本地主题。
 6. 任何内容改动后至少运行 `npm run build`；失败或出现新 warning 时如实报告，不宣称完成。
 7. 不新增明文密钥；`.env`、Artalk 配置、证书、日志都不进 git。
-8. 线上操作（git pull、重启 8080/8090、nginx reload）属于高风险动作，执行前说明影响并确认。
+8. 线上操作（git pull、build/release 切换、重启 8090、`launchctl kickstart` nginx）属于高风险动作，执行前说明影响并确认。
 9. 开发机固定为 MacBook；Mac mini 只用于部署与运行，不在 Mac mini 上编辑或提交代码。
 10. 评论是 Artalk（同源 `/api/`），不要重新引入已停用的旧评论插件方案。

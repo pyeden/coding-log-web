@@ -15,7 +15,7 @@
 - 纯静态博客：VuePress 1.8.3 + `vuepress-theme-vdoing` 1.12.9，内容全在 `docs/`。
 - 两个本地配套服务：自建 **Artalk** 评论（`127.0.0.1:23366`，SQLite `data/artalk.db`）和 **旅行助手** FastAPI（`127.0.0.1:8090`）。
 - 开发：`npm run dev` → http://localhost:8080；构建：`npm run build` → `docs/.vuepress/dist`。
-- 线上：Mac mini `/Users/mac/coding-log-web` 上常驻 `vuepress dev`，nginx `:8888`（TLS + proxy_protocol）按路径反代 8080/8090/23366/18789，frpc 暴露 80/443。
+- 线上：nginx `:8888`（TLS + proxy_protocol）直接托管 `/Users/mac/coding-log-web-releases/current/dist` 静态产物；`/api/`、`/api/travel/`、`/sidebar/`、`/openclaw` 按路径反代 23366/8090/18789。8080 dev server 仅作回滚保留。
 - 开发副本：MacBook；远端 `git@github.com:pyeden/coding-log-web.git`（`master`）。
 - 固定分工：MacBook 开发 → Mac mini 部署运行；不在 Mac mini 上直接编辑。
 - 侧边栏靠目录/文件名的「数字.」前缀排序；缺前缀会被跳过。
@@ -26,7 +26,7 @@
 
 | 端口 | 服务 | 绑定 |
 | --- | --- | --- |
-| 8080 | VuePress dev server（当前线上） | `*:8080` |
+| 8080 | VuePress dev server（回滚/本地，公网已静态） | `*:8080` |
 | 8090 | 旅行助手 FastAPI（uvicorn） | `127.0.0.1:8090` |
 | 23366 | Artalk 评论服务 | `127.0.0.1:23366` |
 | 18789 | OpenClaw Gateway（与本博客同域不同路径） | `*:18789` |
@@ -40,7 +40,7 @@
 3. 修改已发布文章的 `permalink` —— 外链失效，Artalk 按页面路径关联的评论也会对不上。
 4. 把维护文档写进 `docs/` —— 会被当成博客文章发布。
 5. 在 nginx 里把 `/api/travel/` 放到 `/api/` 之后或删掉 —— Artalk 会接管旅行助手请求（按最长前缀匹配，`/api/travel/` 必须保留）。
-6. 直接改线上 Mac mini 的文件 —— 线上是 dev server，改动立即对外生效且没有版本记录。
+6. 直接改线上 Mac mini 的文件 —— 公网现在读 build 产物，改源码不会自动生效；仍必须走「构建 → release → 切 current → kickstart nginx」流程。
 
 ## 当前基线
 
