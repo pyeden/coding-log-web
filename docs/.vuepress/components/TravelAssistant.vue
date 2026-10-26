@@ -3,13 +3,30 @@
     <header class="ta-hero">
       <p class="ta-kicker"><i></i>TRAVEL LAB / FASTAPI</p>
       <h2>把一趟旅行，拆成可执行的每一天</h2>
-      <p class="ta-lead">输入目的地、日期与偏好，自动生成逐日行程、预算明细和实用提示。规则引擎实时计算，无需登录。</p>
+      <p class="ta-lead">输入目的地、日期与偏好，自动生成逐日行程、预算明细和实用提示。出发前规划、路上看今日、随时分享给同行人。</p>
       <div class="ta-meta">
         <span>逐日安排</span>
-        <span>预算估算</span>
-        <span>偏好匹配</span>
+        <span>今日卡片</span>
+        <span>附近推荐</span>
+        <span>打包清单</span>
       </div>
     </header>
+
+    <nav class="ta-modes" aria-label="旅行助手视图">
+      <button
+        v-for="tab in modeTabs"
+        :key="tab.key"
+        type="button"
+        class="ta-mode"
+        :class="{ active: mode === tab.key }"
+        :disabled="tab.disabled"
+        :aria-pressed="mode === tab.key"
+        @click="selectMode(tab.key)"
+      >
+        {{ tab.label }}<em v-if="tab.badge">{{ tab.badge }}</em>
+      </button>
+      <span v-if="readOnly" class="ta-readonly">共享行程 · 只读</span>
+    </nav>
 
     <div ref="mapWrap" class="ta-map-wrap" :class="{ 'is-fullscreen': mapFullscreen }">
       <button
@@ -36,7 +53,7 @@
       </div>
     </div>
 
-    <form class="ta-form" @submit.prevent="submit">
+    <form v-show="mode === 'plan' && !readOnly" class="ta-form" @submit.prevent="submit">
       <div class="ta-fields">
         <label class="ta-field ta-field-wide ta-field-origin">
           <span>出发地</span>
@@ -69,6 +86,89 @@
         </label>
       </div>
 
+      <div class="ta-profile">
+        <div class="ta-profile-row">
+          <span class="ta-label">同行人</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.companions"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.companions === opt.value }"
+              @click="setProfile('companions', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+        <div class="ta-profile-row">
+          <span class="ta-label">节奏</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.pace"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.pace === opt.value }"
+              @click="setProfile('pace', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+        <div class="ta-profile-row">
+          <span class="ta-label">交通偏好</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.transport"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.transport === opt.value }"
+              @click="setProfile('transport', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+        <div class="ta-profile-row">
+          <span class="ta-label">住宿预算</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.lodging_budget"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.lodging_budget === opt.value }"
+              @click="setProfile('lodging_budget', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+        <div class="ta-profile-row">
+          <span class="ta-label">忌口</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.dietary"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.dietary.includes(opt.value) }"
+              :aria-pressed="form.profile.dietary.includes(opt.value)"
+              @click="toggleProfile('dietary', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+        <div class="ta-profile-row">
+          <span class="ta-label">无障碍</span>
+          <div class="ta-chips">
+            <button
+              v-for="opt in profileOptions.accessibility"
+              :key="opt.value"
+              type="button"
+              class="ta-chip"
+              :class="{ active: form.profile.accessibility.includes(opt.value) }"
+              :aria-pressed="form.profile.accessibility.includes(opt.value)"
+              @click="toggleProfile('accessibility', opt.value)"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+      </div>
+
       <div class="ta-prefs">
         <span class="ta-label">偏好</span>
         <button
@@ -91,27 +191,31 @@
       </div>
     </form>
 
+    <p v-if="mode === 'plan' && readOnly" class="ta-error">共享行程为只读模式，如需重新规划请打开新页面。</p>
+
     <div v-if="loading" class="ta-skeleton" aria-hidden="true">
       <div class="ta-skeleton-row" v-for="n in 3" :key="n"></div>
     </div>
 
     <p v-if="error" class="ta-error" role="alert">{{ error }}</p>
 
-    <div v-if="result" ref="resultEl" class="ta-result">
+    <div v-if="result && mode === 'itinerary'" ref="resultEl" class="ta-result">
       <div class="ta-summary">
         <div class="ta-summary-head">
-          <h3>{{ result.destination }}</h3>
-          <span class="ta-level">{{ result.budget.level }}</span>
+          <h3>{{ result.destination || form.destination }}</h3>
+          <span v-if="result.budget && result.budget.level" class="ta-level">{{ result.budget.level }}</span>
+          <span v-else-if="readOnly" class="ta-level">共享行程</span>
         </div>
-        <p>{{ result.summary }}</p>
+        <p v-if="result.summary">{{ result.summary }}</p>
         <div class="ta-summary-meta">
-          <span>{{ result.meta.days }} 天</span>
-          <span>{{ result.meta.travelers }} 人</span>
+          <span>{{ daysCount }} 天</span>
+          <span>{{ form.travelers }} 人</span>
           <span>{{ form.start_date }} → {{ form.end_date }}</span>
+          <span v-if="profileSummary">{{ profileSummary }}</span>
         </div>
       </div>
 
-      <div class="ta-budget">
+      <div v-if="result.budget" class="ta-budget">
         <div class="ta-stat">
           <span>总预算</span>
           <strong>¥{{ money(result.budget.budget) }}</strong>
@@ -126,20 +230,30 @@
         </div>
         <div class="ta-stat">
           <span>人均</span>
-          <strong>¥{{ money(result.budget.per_person) }}</strong>
+          <strong>¥{{ money(perPerson) }}</strong>
         </div>
       </div>
 
-      <div class="ta-usage" :class="{ over: result.budget.remaining < 0 }">
+      <div v-if="result.budget" class="ta-usage" :class="{ over: result.budget.remaining < 0 }">
         <div class="ta-usage-bar"><i :style="{ width: usagePercent + '%' }"></i></div>
         <span>预算使用 {{ usagePercent }}%</span>
       </div>
 
-      <div class="ta-budget-detail">
+      <div v-if="result.budget" class="ta-budget-detail">
         <span>住宿 ¥{{ money(result.budget.hotel) }}</span>
         <span>餐饮 ¥{{ money(result.budget.food) }}</span>
         <span>门票 ¥{{ money(result.budget.tickets) }}</span>
         <span>市内交通 ¥{{ money(result.budget.transport) }}</span>
+        <span v-if="result.budget.buffer != null">机动 ¥{{ money(result.budget.buffer) }}</span>
+      </div>
+
+      <div class="ta-toolbar">
+        <button class="ta-ghost" type="button" :disabled="sharing" @click="shareLink">{{ sharing ? '生成链接…' : '分享链接' }}</button>
+        <button class="ta-ghost" type="button" @click="copyText">{{ copied ? '已复制 ✓' : '复制行程' }}</button>
+        <button class="ta-ghost" type="button" @click="downloadIcs">下载 .ics</button>
+        <button class="ta-ghost" type="button" @click="downloadJson">下载 .json</button>
+        <button v-if="!readOnly" class="ta-ghost" type="button" @click="resetPlan">重新规划</button>
+        <span v-if="toast" class="ta-toast" role="status">{{ toast }}</span>
       </div>
 
       <div class="ta-days">
@@ -151,41 +265,210 @@
               <span>{{ day.weekday }}</span>
               <b v-if="day.route_km" class="ta-day-stat">驾车 {{ day.route_km }} km · {{ day.route_min }} 分钟</b>
               <b v-else-if="day.distance_km" class="ta-day-stat">{{ day.distance_km }} km</b>
-              <b v-if="day.spend" class="ta-day-stat">≈ ¥{{ money(day.spend) }}</b>
-              <b v-if="day.tolls" class="ta-day-stat">过路费 ¥{{ day.tolls }}</b>
-              <b v-if="day.lights" class="ta-day-stat">{{ day.lights }} 个红绿灯</b>
             </div>
-            <em>{{ day.theme }}</em>
+            <em v-if="day.theme">{{ day.theme }}</em>
           </header>
+
+          <div v-if="day.weather" class="ta-day-weather">
+            <span class="ta-w-main">{{ day.weather.text || '天气未知' }}</span>
+            <span v-if="day.weather.temp_min != null">{{ day.weather.temp_min }}°~{{ day.weather.temp_max }}°</span>
+            <span v-if="day.weather.rain_prob != null">降水 {{ day.weather.rain_prob }}%</span>
+            <span v-if="day.weather.uv">紫外线 {{ day.weather.uv }}</span>
+            <em v-if="day.weather.source">{{ weatherSourceLabel(day.weather.source) }}</em>
+          </div>
+
+          <div class="ta-day-facts">
+            <p v-if="day.clothing"><b>穿衣</b>{{ day.clothing }}</p>
+            <p v-if="day.lodging_area"><b>住宿</b>{{ day.lodging_area }}</p>
+            <p v-if="day.transport_note"><b>交通</b>{{ day.transport_note }}<template v-if="day.buffer_min != null"> · 缓冲 {{ day.buffer_min }} 分钟</template></p>
+          </div>
+
           <div v-if="day.warnings && day.warnings.length" class="ta-day-warn">
             <span v-for="text in day.warnings" :key="text">{{ text }}</span>
           </div>
+
           <ul class="ta-items">
-            <li v-for="item in day.items" :key="item.time + item.title" class="ta-item">
-              <time>{{ item.time }}</time>
+            <li v-for="item in day.items" :key="itemKey(item)" class="ta-item" :class="'is-' + (item.type || 'attraction')">
+              <time>{{ item.time || '—' }}</time>
               <div class="ta-item-body">
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.type }}<template v-if="item.duration && item.duration !== '—'"> · {{ item.duration }}</template></small>
+                <strong>{{ nameOf(item) }}</strong>
+                <small class="ta-item-meta">
+                  <i class="ta-type">{{ typeLabel(item.type) }}</i>
+                  <template v-if="item.duration"> · {{ item.duration }}</template>
+                </small>
+                <p v-if="item.reason" class="ta-reason">{{ item.reason }}</p>
                 <p v-if="item.note">{{ item.note }}</p>
+                <p v-if="item.indoor_alternative" class="ta-indoor">室内备选：{{ item.indoor_alternative }}</p>
+                <div class="ta-item-links">
+                  <a v-if="item.navigation_url || hasLatLng(item)" :href="amapNavUrl(item)" target="_blank" rel="noopener noreferrer">高德导航</a>
+                  <a v-if="item.external_url" :href="item.external_url" target="_blank" rel="noopener noreferrer">详情</a>
+                  <span v-if="item.address" class="ta-addr">{{ item.address }}</span>
+                </div>
+                <div class="ta-fb">
+                  <button type="button" class="ta-fb-btn" :class="{ on: fb(item).helpful === true }" @click="sendFeedback(item, { helpful: true })">有用</button>
+                  <button type="button" class="ta-fb-btn" :class="{ on: fb(item).helpful === false }" @click="sendFeedback(item, { helpful: false })">没用</button>
+                  <span class="ta-fb-sep" aria-hidden="true"></span>
+                  <button type="button" class="ta-fb-btn" :class="{ on: fb(item).visited === true }" @click="sendFeedback(item, { visited: true })">去了</button>
+                  <button type="button" class="ta-fb-btn" :class="{ on: fb(item).visited === false }" @click="sendFeedback(item, { visited: false })">没去</button>
+                  <span v-if="fb(item).saving" class="ta-fb-hint">保存中…</span>
+                  <span v-else-if="fb(item).error" class="ta-fb-hint err">{{ fb(item).error }}</span>
+                </div>
               </div>
-              <span v-if="item.cost" class="ta-cost">¥{{ item.cost }}/人</span>
+              <span v-if="item.cost" class="ta-cost">¥{{ item.cost }}</span>
             </li>
           </ul>
         </article>
       </div>
 
-      <div class="ta-tips">
+      <section v-if="packingGroups.length" class="ta-packing">
+        <header class="ta-section-head">
+          <h3>打包清单</h3>
+          <span class="ta-section-meta">已备 {{ packedCount }} / {{ packTotal }}</span>
+        </header>
+        <div class="ta-pack-grid">
+          <div v-for="group in packingGroups" :key="group.name" class="ta-pack-group">
+            <h4>{{ group.name }}</h4>
+            <label
+              v-for="entry in group.items"
+              :key="entry.name"
+              class="ta-pack-item"
+              :class="{ done: isPacked(group.name, entry.name) }"
+            >
+              <input type="checkbox" :checked="isPacked(group.name, entry.name)" @change="togglePacked(group.name, entry.name)" />
+              <span class="ta-pack-name">{{ entry.name }}<b v-if="entry.required" class="ta-required">必带</b></span>
+              <small v-if="entry.reason">{{ entry.reason }}</small>
+            </label>
+          </div>
+        </div>
+        <ul v-if="packingNotes.length" class="ta-pack-notes">
+          <li v-for="note in packingNotes" :key="note">{{ note }}</li>
+        </ul>
+      </section>
+
+      <div v-if="result.tips && result.tips.length" class="ta-tips">
         <h3>实用提示</h3>
         <ul>
           <li v-for="tip in result.tips" :key="tip">{{ tip }}</li>
         </ul>
       </div>
+    </div>
 
-      <div class="ta-result-actions">
-        <button class="ta-ghost" type="button" @click="copyPlan">{{ copied ? '已复制 ✓' : '复制行程' }}</button>
-        <button class="ta-ghost" type="button" @click="sharePlan">{{ shared ? '链接已复制 ✓' : '分享链接' }}</button>
-        <button class="ta-ghost" type="button" @click="result = null">重新规划</button>
+    <div v-if="result && mode === 'today'" class="ta-today">
+      <header class="ta-today-head">
+        <div>
+          <p class="ta-today-kicker">TODAY · 第 {{ todayIndex + 1 }} 天</p>
+          <h3>{{ todayDay.date }} {{ todayDay.weekday }} · {{ todayDay.theme }}</h3>
+          <p v-if="!todayInRange" class="ta-today-note">当前不在行程日期内，展示第 1 天安排</p>
+        </div>
+        <button class="ta-ghost" type="button" @click="selectMode('itinerary')">查看完整行程</button>
+      </header>
+
+      <div class="ta-today-grid">
+        <article class="ta-today-card">
+          <header class="ta-card-head">
+            <h4>天气与穿衣</h4>
+            <button type="button" class="ta-mini" :disabled="weatherLoading" @click="refreshWeather">{{ weatherLoading ? '刷新中…' : '刷新' }}</button>
+          </header>
+          <div class="ta-temp">
+            <strong>{{ todayWeatherData.text || '天气未知' }}</strong>
+            <span v-if="todayWeatherData.temp_min != null">{{ todayWeatherData.temp_min }}° ~ {{ todayWeatherData.temp_max }}°</span>
+          </div>
+          <div class="ta-weather-meta">
+            <span v-if="todayWeatherData.rain_prob != null">降水 {{ todayWeatherData.rain_prob }}%</span>
+            <span v-if="todayWeatherData.uv">紫外线 {{ todayWeatherData.uv }}</span>
+            <em v-if="todayWeatherData.source">{{ weatherSourceLabel(todayWeatherData.source) }}</em>
+          </div>
+          <p class="ta-clothing">{{ todayDay.clothing || '以当日天气为准，备一件薄外套。' }}</p>
+        </article>
+
+        <article class="ta-today-card">
+          <header class="ta-card-head"><h4>下一站</h4></header>
+          <template v-if="nextStop">
+            <p class="ta-next-time">{{ nextStop.item.time }}<span>· 第 {{ nextStop.index + 1 }} / {{ nextStop.total }} 站</span></p>
+            <strong class="ta-next-name">{{ nameOf(nextStop.item) }}</strong>
+            <p v-if="nextStop.item.reason" class="ta-next-reason">{{ nextStop.item.reason }}</p>
+            <p v-if="nextStop.item.note" class="ta-next-note">{{ nextStop.item.note }}</p>
+            <div class="ta-next-actions">
+              <a v-if="amapNavUrl(nextStop.item)" :href="amapNavUrl(nextStop.item)" target="_blank" rel="noopener noreferrer">开始导航</a>
+              <a v-if="nextStop.item.external_url" :href="nextStop.item.external_url" target="_blank" rel="noopener noreferrer">详情</a>
+            </div>
+          </template>
+          <p v-else class="ta-muted">今天没有安排，慢一点也很好。</p>
+        </article>
+
+        <article class="ta-today-card">
+          <header class="ta-card-head"><h4>路线与住宿</h4></header>
+          <p v-if="todayDay.transport_note" class="ta-route-note">{{ todayDay.transport_note }}</p>
+          <p v-if="todayDay.buffer_min != null" class="ta-muted">景点间预留 {{ todayDay.buffer_min }} 分钟缓冲</p>
+          <p class="ta-lodging"><b>住宿区域</b>{{ todayDay.lodging_area || '未指定' }}</p>
+          <button type="button" class="ta-mini" @click="switchPoi('lodging')">查看周边酒店</button>
+        </article>
+
+        <article class="ta-today-card ta-emergency-card">
+          <header class="ta-card-head"><h4>紧急入口</h4></header>
+          <ul class="ta-emergency-list">
+            <li v-for="num in emergencyNumbers" :key="num.number + num.name">
+              <span>{{ num.name }}</span>
+              <a :href="'tel:' + num.number">{{ num.number }}</a>
+            </li>
+          </ul>
+          <a v-if="hospital && hospital.navigation_url" class="ta-hospital" :href="hospital.navigation_url" target="_blank" rel="noopener noreferrer">医院导航：{{ hospital.name || '附近医院' }}</a>
+          <p v-else-if="hospital && hospital.name" class="ta-muted">{{ hospital.name }}<template v-if="hospital.address"> · {{ hospital.address }}</template></p>
+          <button type="button" class="ta-mini" @click="switchPoi('emergency')">周边医院/药店</button>
+        </article>
       </div>
+
+      <section class="ta-poi">
+        <header class="ta-poi-head">
+          <div>
+            <h3>附近推荐</h3>
+            <span v-if="poi.source === 'fallback'" class="ta-fallback">静态推荐 · 非实时数据</span>
+            <span v-else-if="poi.source === 'amap'" class="ta-live">高德实时</span>
+          </div>
+          <button type="button" class="ta-mini" :disabled="poi.loading" @click="loadPoi(poi.category, true)">刷新</button>
+        </header>
+        <div class="ta-poi-tabs">
+          <button
+            v-for="tab in poiTabs"
+            :key="tab.key"
+            type="button"
+            class="ta-poi-tab"
+            :class="{ active: poi.category === tab.key }"
+            @click="switchPoi(tab.key)"
+          >{{ tab.label }}</button>
+        </div>
+        <p v-if="poi.loading" class="ta-poi-state">正在查找附近{{ catLabel(poi.category) }}…</p>
+        <div v-else-if="poi.error" class="ta-poi-state err">
+          {{ poi.error }}
+          <button type="button" class="ta-mini" @click="loadPoi(poi.category, true)">重试</button>
+        </div>
+        <p v-else-if="!poi.items.length" class="ta-poi-state">附近暂无{{ catLabel(poi.category) }}推荐，可稍后刷新。</p>
+        <div v-else class="ta-poi-grid">
+          <article v-for="p in poi.items" :key="p.id || p.name" class="ta-poi-card">
+            <header class="ta-poi-card-head">
+              <strong>{{ p.name }}</strong>
+              <span v-if="p.distance_m != null" class="ta-poi-distance">{{ formatDistance(p.distance_m) }}</span>
+            </header>
+            <div class="ta-poi-tags">
+              <span v-if="p.type">{{ p.type }}</span>
+              <span v-if="p.rating">★ {{ p.rating }}</span>
+              <span v-if="p.cost">¥{{ p.cost }}/人</span>
+              <span v-if="p.open_status">{{ p.open_status }}</span>
+            </div>
+            <p v-if="p.address" class="ta-poi-addr">{{ p.address }}</p>
+            <p v-if="p.reason" class="ta-poi-reason">{{ p.reason }}</p>
+            <div class="ta-poi-actions">
+              <a v-if="p.navigation_url" :href="p.navigation_url" target="_blank" rel="noopener noreferrer">导航</a>
+              <a v-if="p.external_url" :href="p.external_url" target="_blank" rel="noopener noreferrer">点评/预订</a>
+            </div>
+          </article>
+        </div>
+        <p class="ta-poi-note">距离、评分与价格为参考，以商家实际为准。</p>
+      </section>
+
+      <section v-if="packingGroups.length" class="ta-today-pack">
+        <button type="button" class="ta-ghost" @click="selectMode('itinerary')">查看打包清单（{{ packedCount }}/{{ packTotal }}）</button>
+      </section>
     </div>
   </section>
 </template>
@@ -248,6 +531,7 @@ export default {
     const end = new Date(start)
     end.setDate(start.getDate() + 2)
     return {
+      mode: 'plan',
       form: {
         destination: '北京',
         origin: '',
@@ -258,8 +542,53 @@ export default {
         budget: 3000,
         travelers: 2,
         preferences: ['历史', '美食'],
+        profile: {
+          companions: 'couple',
+          pace: 'balanced',
+          dietary: [],
+          accessibility: [],
+          transport: 'public',
+          lodging_budget: 'comfort',
+        },
       },
       preferenceOptions: ['历史', '自然', '美食', '艺术', '亲子', '购物', '夜景'],
+      profileOptions: {
+        companions: [
+          { value: 'solo', label: '独自' },
+          { value: 'couple', label: '情侣' },
+          { value: 'friends', label: '朋友' },
+          { value: 'family_kids', label: '亲子' },
+          { value: 'family_elderly', label: '带长辈' },
+        ],
+        pace: [
+          { value: 'relaxed', label: '轻松' },
+          { value: 'balanced', label: '均衡' },
+          { value: 'packed', label: '紧凑' },
+        ],
+        transport: [
+          { value: 'public', label: '公共交通' },
+          { value: 'taxi', label: '打车' },
+          { value: 'drive', label: '自驾' },
+          { value: 'walk', label: '步行' },
+        ],
+        lodging_budget: [
+          { value: 'budget', label: '经济' },
+          { value: 'comfort', label: '舒适' },
+          { value: 'premium', label: '高端' },
+        ],
+        dietary: [
+          { value: 'vegetarian', label: '素食' },
+          { value: 'halal', label: '清真' },
+          { value: 'no_spicy', label: '不吃辣' },
+          { value: 'no_seafood', label: '不吃海鲜' },
+          { value: 'nut_allergy', label: '坚果过敏' },
+        ],
+        accessibility: [
+          { value: 'step_free', label: '无台阶' },
+          { value: 'elevator', label: '电梯优先' },
+          { value: 'avoid_long_walk', label: '少走路' },
+        ],
+      },
       loading: false,
       locating: false,
       error: '',
@@ -272,28 +601,138 @@ export default {
       dayBounds: [],
       activeDay: null,
       shared: false,
+      sharing: false,
+      shareId: '',
+      readOnly: false,
+      todayWeather: null,
+      weatherLoading: false,
+      feedback: {},
+      packing: {},
+      poi: { category: 'food', items: [], source: '', loading: false, error: '', cache: {}, reqId: 0 },
+      toast: '',
+      toastTimer: null,
       dayColors: ['#22d3ee', '#8b5cf6', '#f472b6', '#a3e635', '#fbbf24', '#fb7185'],
     }
   },
   computed: {
-    hasCoords () {
-      if (!this.result) return false
-      return this.result.days.some(day => day.items.some(item => item.lat && item.lng))
+    modeTabs () {
+      return [
+        { key: 'plan', label: '规划', disabled: this.readOnly },
+        { key: 'itinerary', label: '行程', disabled: !this.result, badge: this.daysCount ? this.daysCount + '天' : '' },
+        { key: 'today', label: '今日', disabled: !this.result },
+      ]
+    },
+    daysCount () {
+      return (this.result && this.result.days && this.result.days.length) || 0
+    },
+    perPerson () {
+      if (!this.result || !this.result.budget) return 0
+      const budget = this.result.budget
+      if (budget.per_person != null) return budget.per_person
+      const travelers = Number(this.form.travelers) || 1
+      return Math.round((Number(budget.total) || 0) / travelers)
     },
     usagePercent () {
-      if (!this.result) return 0
+      if (!this.result || !this.result.budget) return 0
       const { total, budget } = this.result.budget
       if (!budget) return 0
       return Math.min(100, Math.max(0, Math.round((total / budget) * 100)))
+    },
+    hasCoords () {
+      if (!this.result || !this.result.days) return false
+      return this.result.days.some(day => (day.items || []).some(item => this.hasLatLng(item)))
+    },
+    todayStr () {
+      return formatDate(new Date())
+    },
+    todayIndex () {
+      if (!this.result || !this.result.days || !this.result.days.length) return 0
+      const index = this.result.days.findIndex(day => day.date === this.todayStr)
+      return index >= 0 ? index : 0
+    },
+    todayInRange () {
+      if (!this.result || !this.result.days) return false
+      return this.result.days.some(day => day.date === this.todayStr)
+    },
+    todayDay () {
+      if (!this.result || !this.result.days || !this.result.days.length) return {}
+      return this.result.days[this.todayIndex] || this.result.days[0] || {}
+    },
+    todayWeatherData () {
+      if (this.todayWeather) return this.todayWeather
+      return (this.todayDay && this.todayDay.weather) || {}
+    },
+    nextStop () {
+      const day = this.todayDay
+      const items = (day && day.items) || []
+      if (!items.length) return null
+      const sorted = items.slice().sort((a, b) => this.timeToMinutes(a.time) - this.timeToMinutes(b.time))
+      let index = 0
+      if (this.todayInRange) {
+        const now = new Date()
+        const nowMin = now.getHours() * 60 + now.getMinutes()
+        const found = sorted.findIndex(item => this.timeToMinutes(item.time) >= nowMin)
+        index = found >= 0 ? found : 0
+      }
+      return { item: sorted[index], index, total: sorted.length }
+    },
+    packingGroups () {
+      const packing = this.result && this.result.packing
+      return (packing && packing.categories) || []
+    },
+    packingNotes () {
+      const packing = this.result && this.result.packing
+      return (packing && packing.notes) || []
+    },
+    packTotal () {
+      return this.packingGroups.reduce((sum, group) => sum + ((group.items && group.items.length) || 0), 0)
+    },
+    packedCount () {
+      let count = 0
+      this.packingGroups.forEach(group => {
+        (group.items || []).forEach(entry => {
+          if (this.isPacked(group.name, entry.name)) count++
+        })
+      })
+      return count
+    },
+    profileSummary () {
+      if (!this.result || !this.result.profile) return ''
+      const profile = this.result.profile
+      const companions = this.profileLabel('companions', profile.companions)
+      const pace = this.profileLabel('pace', profile.pace)
+      return [companions, pace].filter(Boolean).join(' · ')
+    },
+    emergencyNumbers () {
+      const numbers = this.result && this.result.emergency && this.result.emergency.numbers
+      if (numbers && numbers.length) return numbers
+      return [
+        { name: '报警', number: '110' },
+        { name: '急救', number: '120' },
+        { name: '火警', number: '119' },
+      ]
+    },
+    hospital () {
+      return (this.result && this.result.emergency && this.result.emergency.hospital) || null
+    },
+    poiTabs () {
+      return [
+        { key: 'food', label: '吃饭' },
+        { key: 'lodging', label: '住宿' },
+        { key: 'transport', label: '交通' },
+        { key: 'emergency', label: '紧急' },
+      ]
     },
   },
   mounted () {
     this.prefillFromQuery()
     this.initMap()
+    this.loadShareFromQuery()
     document.addEventListener('keydown', this.onMapKeydown)
   },
   beforeDestroy () {
     document.removeEventListener('keydown', this.onMapKeydown)
+    if (this.toastTimer) clearTimeout(this.toastTimer)
     document.body.style.overflow = ''
     if (this.map) {
       this.map.remove()
@@ -308,6 +747,16 @@ export default {
     result () {
       this.activeDay = null
       this.$nextTick(() => this.renderMap())
+    },
+    mode (value) {
+      if (value === 'today') {
+        this.$nextTick(() => {
+          this.renderMap()
+          this.ensurePoi()
+        })
+      } else if (value === 'itinerary') {
+        this.$nextTick(() => this.renderMap())
+      }
     },
   },
   methods: {
@@ -461,7 +910,7 @@ export default {
             iconSize: [26, 26],
             iconAnchor: [13, 13],
           })
-          const popup = `<strong>${item.time} ${item.title}</strong><br><small>${item.type}${item.duration && item.duration !== '—' ? ' · ' + item.duration : ''}</small>${item.cost ? `<br><small>¥${item.cost}/人</small>` : ''}`
+          const popup = `<strong>${item.time} ${this.nameOf(item)}</strong><br><small>${item.type}${item.duration && item.duration !== '—' ? ' · ' + item.duration : ''}</small>${item.cost ? `<br><small>¥${item.cost}/人</small>` : ''}`
           L.marker(latlng, { icon }).bindPopup(popup).addTo(this.mapLayerGroup)
           bounds.push(latlng)
         })
@@ -512,25 +961,26 @@ export default {
         this.map.fitBounds(points, { padding: [40, 40], maxZoom: 14 })
       }
     },
-    sharePlan () {
-      const params = new URLSearchParams({
-        destination: this.form.destination,
-        start: this.form.start_date,
-        end: this.form.end_date,
-        budget: String(this.form.budget),
-        travelers: String(this.form.travelers),
-        prefs: this.form.preferences.join(','),
-        auto: '1',
-      })
-      const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`
-      const done = () => {
-        this.shared = true
-        setTimeout(() => { this.shared = false }, 2000)
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(done).catch(() => this.fallbackCopy(url, done))
-      } else {
-        this.fallbackCopy(url, done)
+    async shareLink () {
+      if (!this.result) return
+      this.sharing = true
+      this.toast = ''
+      try {
+        const response = await fetch('/api/travel/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: this.result }),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok || !data.id) throw new Error(data.detail || '分享服务暂不可用，请稍后重试。')
+        this.shareId = data.id
+        const url = 'https://seres-ai.com/projects/travel/?share=' + data.id
+        await this.copyToClipboard(url)
+        this.toastNow('分享链接已复制')
+      } catch (err) {
+        this.toastNow(err.message || '分享失败，请稍后重试。')
+      } finally {
+        this.sharing = false
       }
     },
 
@@ -558,7 +1008,7 @@ export default {
             offset: new AMap.Pixel(-13, -13),
           })
           marker.on('click', () => {
-            const info = `${item.time} ${item.title}<br><small>${item.type}${item.cost ? ' · ¥' + item.cost + '/人' : ''}</small>`
+            const info = `${item.time} ${this.nameOf(item)}<br><small>${item.type}${item.cost ? ' · ¥' + item.cost + '/人' : ''}</small>`
             new AMap.InfoWindow({ content: info, offset: new AMap.Pixel(0, -18) }).open(this.amap, position)
           })
           this.amap.add(marker)
@@ -850,6 +1300,7 @@ export default {
     },
     async submit () {
       this.error = ''
+      this.toast = ''
       if (this.form.end_date < this.form.start_date) {
         this.error = '返程日期不能早于出发日期。'
         return
@@ -863,7 +1314,8 @@ export default {
         })
         const data = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(data.detail || '规划失败，请稍后重试。')
-        this.result = data
+        this.applyResult(data)
+        this.mode = 'itinerary'
         this.$nextTick(() => {
           const el = this.$refs.resultEl
           if (!el) return
@@ -876,27 +1328,44 @@ export default {
         this.loading = false
       }
     },
-    copyPlan () {
+    copyText () {
       if (!this.result) return
-      const lines = [`${this.result.destination} · ${this.result.meta.days} 天 · ${this.result.meta.travelers} 人`, '']
+      const destination = this.result.destination || this.form.destination
+      const lines = [destination + ' · ' + this.daysCount + ' 天 · ' + this.form.travelers + ' 人', '']
       this.result.days.forEach(day => {
-        lines.push(`${day.date} ${day.weekday} · ${day.theme}`)
-        day.items.forEach(item => {
-          lines.push(`  ${item.time} ${item.title}${item.duration && item.duration !== '—' ? `（${item.duration}）` : ''}`)
+        lines.push(day.date + ' ' + (day.weekday || '') + ' · ' + (day.theme || ''))
+        if (day.weather && day.weather.text) {
+          lines.push('  天气：' + day.weather.text + ' ' + (day.weather.temp_min != null ? day.weather.temp_min + '°~' + day.weather.temp_max + '°' : ''))
+        }
+        if (day.clothing) lines.push('  穿衣：' + day.clothing)
+        if (day.lodging_area) lines.push('  住宿：' + day.lodging_area)
+        if (day.transport_note) {
+          lines.push('  交通：' + day.transport_note + (day.buffer_min != null ? '（缓冲 ' + day.buffer_min + ' 分钟）' : ''))
+        }
+        ;(day.items || []).forEach(item => {
+          const meta = [this.typeLabel(item.type)]
+          if (item.duration) meta.push(item.duration)
+          if (item.cost) meta.push('¥' + item.cost + '/人')
+          lines.push('  ' + (item.time || '') + ' ' + this.nameOf(item) + '（' + meta.join(' · ') + '）')
+          if (item.note) lines.push('    ' + item.note)
+          if (item.reason) lines.push('    推荐：' + item.reason)
+          if (item.indoor_alternative) lines.push('    室内备选：' + item.indoor_alternative)
         })
         lines.push('')
       })
-      lines.push(`预算 ¥${this.money(this.result.budget.budget)} / 预计 ¥${this.money(this.result.budget.total)}`)
+      if (this.result.budget) {
+        lines.push('预算 ¥' + this.money(this.result.budget.budget) + ' / 预计 ¥' + this.money(this.result.budget.total))
+      }
+      if (this.result.tips && this.result.tips.length) {
+        lines.push('')
+        lines.push('提示：')
+        this.result.tips.forEach(tip => lines.push('  · ' + tip))
+      }
       const text = lines.join('\n')
-      const done = () => {
+      this.copyToClipboard(text).then(() => {
         this.copied = true
         setTimeout(() => { this.copied = false }, 2000)
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done))
-      } else {
-        this.fallbackCopy(text, done)
-      }
+      })
     },
     fallbackCopy (text, done) {
       const ta = document.createElement('textarea')
@@ -911,10 +1380,397 @@ export default {
       } catch (e) {}
       document.body.removeChild(ta)
     },
+    selectMode (key) {
+      if (key === 'plan' && this.readOnly) return
+      if ((key === 'itinerary' || key === 'today') && !this.result) return
+      this.mode = key
+    },
+    nameOf (item) {
+      if (!item) return ''
+      return item.name || item.title || '行程安排'
+    },
+    typeLabel (type) {
+      const labels = { attraction: '景点', meal: '用餐', lodging: '住宿', transport: '交通', rest: '休息' }
+      return labels[type] || '安排'
+    },
+    hasLatLng (item) {
+      if (!item) return false
+      const lat = Number(item.lat)
+      const lng = Number(item.lng)
+      return Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0
+    },
+    itemKey (item) {
+      if (!item) return ''
+      return item.id || ((item.time || '') + '-' + this.nameOf(item))
+    },
+    timeToMinutes (value) {
+      const match = /^(\d{1,2}):(\d{2})/.exec(String(value || ''))
+      if (!match) return 24 * 60
+      return Number(match[1]) * 60 + Number(match[2])
+    },
+    setProfile (key, value) {
+      this.form.profile[key] = value
+    },
+    toggleProfile (key, value) {
+      const list = this.form.profile[key]
+      const index = list.indexOf(value)
+      if (index >= 0) list.splice(index, 1)
+      else list.push(value)
+    },
+    profileLabel (key, value) {
+      const options = this.profileOptions[key] || []
+      const found = options.find(option => option.value === value)
+      return found ? found.label : ''
+    },
+    applyResult (data) {
+      const plan = (data && data.plan) ? data.plan : data
+      this.result = plan
+      this.todayWeather = null
+      this.feedback = {}
+      this.poi = { category: 'food', items: [], source: '', loading: false, error: '', cache: {}, reqId: this.poi.reqId + 1 }
+      this.initFeedback()
+      this.loadPacking()
+      if (plan && plan.days && plan.days.length) {
+        this.form.start_date = plan.days[0].date || this.form.start_date
+        this.form.end_date = plan.days[plan.days.length - 1].date || this.form.end_date
+      }
+      if (plan && plan.destination) this.form.destination = plan.destination
+      if (plan && plan.travelers) this.form.travelers = plan.travelers
+    },
+    initFeedback () {
+      this.feedback = {}
+      if (!this.result || !this.result.days) return
+      this.result.days.forEach(day => {
+        (day.items || []).forEach(item => {
+          this.$set(this.feedback, this.itemKey(item), { helpful: null, visited: null, saving: false, error: '' })
+        })
+      })
+    },
+    fb (item) {
+      if (!item) return { helpful: null, visited: null, saving: false, error: '' }
+      return this.feedback[this.itemKey(item)] || { helpful: null, visited: null, saving: false, error: '' }
+    },
+    async sendFeedback (item, patch) {
+      if (!this.result || !item) return
+      const key = this.itemKey(item)
+      const current = this.fb(item)
+      const previous = { helpful: current.helpful, visited: current.visited }
+      const next = Object.assign({}, previous, patch)
+      this.$set(this.feedback, key, { helpful: next.helpful, visited: next.visited, saving: true, error: '' })
+      try {
+        const response = await fetch('/api/travel/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan_id: this.result.plan_id || '',
+            item_id: item.id || key,
+            helpful: next.helpful,
+            visited: next.visited,
+            note: '',
+          }),
+        })
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}))
+          throw new Error(data.detail || '反馈保存失败')
+        }
+        this.$set(this.feedback, key, { helpful: next.helpful, visited: next.visited, saving: false, error: '' })
+      } catch (err) {
+        this.$set(this.feedback, key, { helpful: previous.helpful, visited: previous.visited, saving: false, error: '同步失败' })
+        setTimeout(() => {
+          const state = this.feedback[key]
+          if (state && state.error) this.$set(this.feedback, key, Object.assign({}, state, { error: '' }))
+        }, 2600)
+      }
+    },
+    loadShareFromQuery () {
+      const params = new URLSearchParams(window.location.search)
+      const id = params.get('share')
+      if (id) this.loadShare(id)
+    },
+    async loadShare (id) {
+      this.loading = true
+      this.error = ''
+      try {
+        const response = await fetch('/api/travel/share/' + encodeURIComponent(id))
+        const data = await response.json().catch(() => ({}))
+        if (response.status === 404) throw new Error('共享行程不存在或已过期。')
+        if (!response.ok) throw new Error(data.detail || '共享行程加载失败。')
+        const plan = data.plan || data
+        this.readOnly = true
+        this.shareId = id
+        this.applyResult(plan)
+        this.mode = 'itinerary'
+      } catch (err) {
+        this.error = err.message || '共享行程加载失败。'
+        this.mode = 'plan'
+      } finally {
+        this.loading = false
+      }
+    },
+    resetPlan () {
+      this.result = null
+      this.mode = 'plan'
+      this.todayWeather = null
+      this.toast = ''
+      this.activeDay = null
+      this.$nextTick(() => this.renderMap())
+    },
+    toastNow (message) {
+      this.toast = message
+      if (this.toastTimer) clearTimeout(this.toastTimer)
+      this.toastTimer = setTimeout(() => { this.toast = '' }, 3200)
+    },
+    weatherSourceLabel (source) {
+      if (source === 'amap') return '高德天气'
+      if (source === 'fallback') return '季节参考'
+      return ''
+    },
+    async refreshWeather () {
+      if (!this.result || !this.todayDay || !this.todayDay.date) return
+      this.weatherLoading = true
+      try {
+        const params = new URLSearchParams({
+          destination: this.result.destination || this.form.destination,
+          date: this.todayDay.date,
+        })
+        const response = await fetch('/api/travel/weather?' + params.toString())
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(data.detail || '天气刷新失败。')
+        this.todayWeather = data
+        this.toastNow('天气已更新')
+      } catch (err) {
+        this.toastNow(err.message || '天气刷新失败，请稍后重试。')
+      } finally {
+        this.weatherLoading = false
+      }
+    },
+    poiCenter () {
+      if (!this.result || !this.result.days) return null
+      const days = this.result.days
+      const order = [this.todayDay].concat(days)
+      for (let i = 0; i < order.length; i++) {
+        const items = (order[i] && order[i].items) || []
+        const found = items.find(item => this.hasLatLng(item))
+        if (found) return { lat: Number(found.lat), lng: Number(found.lng) }
+      }
+      return null
+    },
+    async loadPoi (category, force) {
+      if (!this.result) return
+      const cat = category || this.poi.category
+      this.poi.category = cat
+      const center = this.poiCenter()
+      if (!center) {
+        this.poi.items = []
+        this.poi.source = ''
+        this.poi.error = '当前行程暂无坐标，无法搜索附近推荐。'
+        return
+      }
+      const cacheKey = cat + ':' + center.lat.toFixed(3) + ',' + center.lng.toFixed(3)
+      if (!force && this.poi.cache[cacheKey]) {
+        this.poi.items = this.poi.cache[cacheKey].items
+        this.poi.source = this.poi.cache[cacheKey].source
+        this.poi.error = ''
+        return
+      }
+      const reqId = this.poi.reqId + 1
+      this.poi.reqId = reqId
+      this.poi.loading = true
+      this.poi.error = ''
+      const params = new URLSearchParams({
+        category: cat,
+        lat: String(center.lat),
+        lng: String(center.lng),
+        radius: '1500',
+        limit: '6',
+      })
+      const destination = this.result.destination || this.form.destination
+      if (destination) params.set('destination', destination)
+      const dietary = (this.form.profile && this.form.profile.dietary) || []
+      if (dietary.length) params.set('dietary', dietary.join(','))
+      try {
+        const response = await fetch('/api/travel/poi?' + params.toString())
+        const data = await response.json().catch(() => ({}))
+        if (this.poi.reqId !== reqId) return
+        if (!response.ok) throw new Error(data.detail || '附近推荐加载失败。')
+        const items = Array.isArray(data.items) ? data.items : []
+        const source = data.source || 'amap'
+        this.$set(this.poi.cache, cacheKey, { items, source })
+        this.poi.items = items
+        this.poi.source = source
+      } catch (err) {
+        if (this.poi.reqId !== reqId) return
+        this.poi.items = []
+        this.poi.source = ''
+        this.poi.error = err.message || '附近推荐加载失败，请稍后重试。'
+      } finally {
+        if (this.poi.reqId === reqId) this.poi.loading = false
+      }
+    },
+    switchPoi (category) {
+      this.poi.category = category
+      this.loadPoi(category)
+    },
+    ensurePoi () {
+      if (!this.result) return
+      if (this.poi.loading || this.poi.items.length) return
+      this.loadPoi(this.poi.category)
+    },
+    catLabel (category) {
+      const labels = { food: '吃饭', lodging: '住宿', transport: '交通', emergency: '紧急' }
+      return labels[category] || '推荐'
+    },
+    formatDistance (value) {
+      const distance = Number(value)
+      if (!Number.isFinite(distance)) return ''
+      if (distance < 1000) return Math.round(distance) + ' m'
+      return (distance / 1000).toFixed(1) + ' km'
+    },
+    amapNavUrl (item) {
+      if (!item) return ''
+      if (item.navigation_url) return item.navigation_url
+      if (!this.hasLatLng(item)) return ''
+      const [lng, lat] = wgs84ToGcj02(Number(item.lng), Number(item.lat))
+      const name = encodeURIComponent(this.nameOf(item))
+      return 'https://uri.amap.com/marker?position=' + lng.toFixed(6) + ',' + lat.toFixed(6) + '&name=' + name + '&src=seres-ai&coordinate=gaode&callnative=1'
+    },
+    packingStorageKey () {
+      const id = (this.result && this.result.plan_id) || this.shareId || (this.form.destination + '-' + this.form.start_date)
+      return 'ta-packing:' + id
+    },
+    loadPacking () {
+      try {
+        const raw = window.localStorage.getItem(this.packingStorageKey())
+        this.packing = raw ? (JSON.parse(raw) || {}) : {}
+      } catch (err) {
+        this.packing = {}
+      }
+    },
+    savePacking () {
+      try {
+        window.localStorage.setItem(this.packingStorageKey(), JSON.stringify(this.packing))
+      } catch (err) {}
+    },
+    isPacked (category, name) {
+      return !!this.packing[category + '|' + name]
+    },
+    togglePacked (category, name) {
+      const key = category + '|' + name
+      this.$set(this.packing, key, !this.packing[key])
+      this.savePacking()
+    },
+    copyToClipboard (text) {
+      return new Promise(resolve => {
+        const done = () => resolve(true)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done))
+        } else {
+          this.fallbackCopy(text, done)
+        }
+      })
+    },
+    downloadFile (name, content, type) {
+      const blob = new Blob([content], { type })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = name
+      document.body.appendChild(anchor)
+      anchor.click()
+      setTimeout(() => {
+        document.body.removeChild(anchor)
+        URL.revokeObjectURL(url)
+      }, 0)
+    },
+    safeName (value) {
+      return String(value || 'travel').replace(/[\\/:*?"<>|\s]+/g, '-')
+    },
+    downloadJson () {
+      if (!this.result) return
+      const name = this.safeName(this.result.destination || this.form.destination) + '-' + this.form.start_date + '.json'
+      this.downloadFile(name, JSON.stringify(this.result, null, 2), 'application/json;charset=utf-8')
+      this.toastNow('已下载 .json')
+    },
+    downloadIcs () {
+      if (!this.result) return
+      const name = this.safeName(this.result.destination || this.form.destination) + '-' + this.form.start_date + '.ics'
+      this.downloadFile(name, this.buildIcs(), 'text/calendar;charset=utf-8')
+      this.toastNow('已下载 .ics 日历')
+    },
+    buildIcs () {
+      const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//seres-ai//travel-assistant//CN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:' + this.icsEscape(this.result.destination || this.form.destination),
+      ]
+      const stamp = this.icsStamp(new Date())
+      this.result.days.forEach(day => {
+        (day.items || []).forEach(item => {
+          const start = this.combineDateTime(day.date, item.time)
+          if (!start) return
+          const end = new Date(start.getTime() + this.durationMinutes(item.duration) * 60000)
+          const uid = (item.id || (day.date + '-' + (item.time || ''))) + '@seres-ai.com'
+          lines.push('BEGIN:VEVENT')
+          lines.push('UID:' + this.icsEscape(uid))
+          lines.push('DTSTAMP:' + stamp)
+          lines.push('DTSTART:' + this.icsLocal(start))
+          lines.push('DTEND:' + this.icsLocal(end))
+          lines.push('SUMMARY:' + this.icsEscape(this.nameOf(item)))
+          const location = [item.address, day.lodging_area].filter(Boolean).join(' / ')
+          if (location) lines.push('LOCATION:' + this.icsEscape(location))
+          const desc = [
+            this.typeLabel(item.type),
+            item.note,
+            item.reason,
+            item.indoor_alternative ? '室内备选：' + item.indoor_alternative : '',
+          ].filter(Boolean).join('；')
+          if (desc) lines.push('DESCRIPTION:' + this.icsEscape(desc))
+          lines.push('END:VEVENT')
+        })
+      })
+      lines.push('END:VCALENDAR')
+      return lines.join('\r\n')
+    },
+    combineDateTime (dateStr, timeStr) {
+      const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ''))
+      if (!dateMatch) return null
+      let hours = 9
+      let minutes = 0
+      const timeMatch = /^(\d{1,2}):(\d{2})/.exec(String(timeStr || ''))
+      if (timeMatch) {
+        hours = Number(timeMatch[1])
+        minutes = Number(timeMatch[2])
+      }
+      return new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]), hours, minutes, 0, 0)
+    },
+    durationMinutes (value) {
+      if (!value) return 60
+      const text = String(value)
+      const hours = /(\d+(?:\.\d+)?)\s*(?:h|小时|hr)/i.exec(text)
+      if (hours) return Math.max(15, Math.round(Number(hours[1]) * 60))
+      const minutes = /(\d+(?:\.\d+)?)\s*(?:min|分钟|分)/i.exec(text)
+      if (minutes) return Math.max(15, Math.round(Number(minutes[1])))
+      return 60
+    },
+    icsLocal (date) {
+      return date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate()) + 'T' + pad(date.getHours()) + pad(date.getMinutes()) + '00'
+    },
+    icsStamp (date) {
+      return date.getUTCFullYear() + pad(date.getUTCMonth() + 1) + pad(date.getUTCDate()) + 'T' + pad(date.getUTCHours()) + pad(date.getUTCMinutes()) + pad(date.getUTCSeconds()) + 'Z'
+    },
+    icsEscape (value) {
+      return String(value || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/,/g, '\\,')
+        .replace(/;/g, '\\;')
+    },
   },
 }
 </script>
-
 <style scoped>
 /* 旅行助手：沿用站点 token 的深色科技风 */
 .ta {
@@ -1330,4 +2186,256 @@ export default {
   .ta-result, .ta-spinner { animation: none; }
   .ta-stat, .ta-day, .ta-chip, .ta-submit, .ta-usage-bar i { transition: none; }
 }
+
+/* ===== 三态导航 / 画像 ===== */
+.ta-modes {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .35rem;
+  width: fit-content; max-width: 100%;
+  margin: 0 0 1rem; padding: .3rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16));
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, .02);
+}
+.ta-mode {
+  padding: .38rem .9rem;
+  border: 0; border-radius: 999px;
+  background-color: transparent;
+  color: var(--site-muted, #8ea3b8);
+  font: inherit; font-size: .82rem; cursor: pointer;
+  transition: color .2s ease, background-color .2s ease;
+}
+.ta-mode:hover:not(:disabled) { color: var(--site-text, #dbe7f3); background-color: rgba(255, 255, 255, .05); }
+.ta-mode.active {
+  color: #04121a; font-weight: 650;
+  background-color: var(--site-accent, #22d3ee);
+  box-shadow: 0 6px 18px var(--site-glow, rgba(34,211,238,.18));
+}
+.ta-mode:disabled { opacity: .38; cursor: not-allowed; }
+.ta-mode em { margin-left: .3rem; font-style: normal; font-size: .66rem; opacity: .75; }
+.ta-readonly {
+  margin-left: .35rem; padding: .2rem .6rem;
+  border: 1px solid rgba(251,191,36,.35); border-radius: 999px;
+  background-color: rgba(251,191,36,.08);
+  color: #fbbf24; font-size: .7rem;
+}
+
+.ta-profile { display: grid; gap: .55rem; margin-top: 1rem; }
+.ta-profile-row {
+  display: grid; grid-template-columns: 68px minmax(0, 1fr);
+  gap: .6rem; align-items: start;
+}
+.ta-chips { display: flex; flex-wrap: wrap; gap: .4rem; min-width: 0; }
+
+/* ===== 行程：天气 / 事实 / 类型 / 链接 / 反馈 ===== */
+.ta-day-weather {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .35rem;
+  margin: 0 0 .5rem; font-size: .73rem; color: var(--site-muted, #8ea3b8);
+}
+.ta-day-weather span {
+  padding: .14rem .5rem; border-radius: 6px;
+  background-color: rgba(255, 255, 255, .04);
+}
+.ta-day-weather .ta-w-main { color: var(--site-accent-text, #67e8f9); }
+.ta-day-weather em { font-style: normal; font-size: .68rem; opacity: .75; }
+.ta-day-facts { display: grid; gap: .25rem; margin: 0 0 .55rem; }
+.ta-day-facts p { margin: 0; font-size: .8rem; line-height: 1.6; color: var(--site-muted, #8ea3b8); overflow-wrap: anywhere; }
+.ta-day-facts b {
+  display: inline-block; margin-right: .45rem; padding: .05rem .35rem;
+  border: 1px solid rgba(34,211,238,.18); border-radius: 4px;
+  font-size: .68rem; font-weight: 600; color: var(--site-text, #dbe7f3);
+  background-color: rgba(34,211,238,.1);
+}
+.ta-item-body { min-width: 0; }
+.ta-item-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem; }
+.ta-type {
+  padding: .02rem .35rem; border-radius: 4px;
+  font-style: normal; font-size: .68rem;
+  color: var(--site-accent-text, #67e8f9);
+  border: 1px solid rgba(34,211,238,.25);
+  background-color: rgba(34,211,238,.07);
+}
+.ta-item.is-meal .ta-type { color: #fbbf24; border-color: rgba(251,191,36,.3); background-color: rgba(251,191,36,.08); }
+.ta-item.is-lodging .ta-type { color: #c4b5fd; border-color: rgba(139,92,246,.3); background-color: rgba(139,92,246,.1); }
+.ta-item.is-transport .ta-type { color: #93c5fd; border-color: rgba(96,165,250,.3); background-color: rgba(96,165,250,.1); }
+.ta-item.is-rest .ta-type { color: #a3e635; border-color: rgba(163,230,53,.3); background-color: rgba(163,230,53,.08); }
+.ta-reason { color: var(--site-accent-text, #67e8f9) !important; opacity: .85; }
+.ta-indoor {
+  display: inline-block; margin: .3rem 0 0 !important;
+  padding: .12rem .45rem;
+  border: 1px dashed rgba(139,92,246,.4); border-radius: 6px;
+  background-color: rgba(139,92,246,.08);
+  color: #c4b5fd !important; font-size: .74rem !important;
+}
+.ta-item-links { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: .3rem; font-size: .74rem; }
+.ta-item-links a, .ta-next-actions a, .ta-poi-actions a {
+  color: var(--site-accent-text, #67e8f9); text-decoration: none;
+  border-bottom: 1px solid rgba(34,211,238,.35);
+}
+.ta-item-links a:hover, .ta-next-actions a:hover, .ta-poi-actions a:hover { border-bottom-color: #67e8f9; }
+.ta-addr { color: var(--site-muted, #8ea3b8); font-size: .72rem; overflow-wrap: anywhere; }
+
+.ta-fb { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .4rem; }
+.ta-fb-btn {
+  padding: .12rem .48rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 999px;
+  background-color: transparent;
+  color: var(--site-muted, #8ea3b8);
+  font: inherit; font-size: .7rem; cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.ta-fb-btn:hover { color: var(--site-text, #dbe7f3); border-color: rgba(34,211,238,.4); }
+.ta-fb-btn.on { color: #04121a; font-weight: 600; background-color: var(--site-accent, #22d3ee); border-color: var(--site-accent, #22d3ee); }
+.ta-fb-sep { width: 1px; height: 12px; margin: 0 .2rem; background-color: var(--site-border, rgba(120,160,200,.2)); }
+.ta-fb-hint { font-size: .68rem; color: var(--site-muted, #8ea3b8); }
+.ta-fb-hint.err { color: #fda4af; }
+
+.ta-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1rem; }
+.ta-toast { font-size: .76rem; color: #a3e635; }
+
+/* ===== 打包清单 ===== */
+.ta-packing {
+  margin-top: 1.2rem; padding: 1rem 1.15rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 14px;
+  background-color: rgba(255, 255, 255, .02);
+}
+.ta-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: .7rem; }
+.ta-section-head h3 { margin: 0; font-size: 1rem; color: #f8fafc; }
+.ta-section-meta { font-size: .74rem; color: var(--site-muted, #8ea3b8); font-variant-numeric: tabular-nums; }
+.ta-pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .7rem; }
+.ta-pack-group {
+  min-width: 0; padding: .6rem .7rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 10px;
+  background-color: rgba(255, 255, 255, .02);
+}
+.ta-pack-group h4 { margin: 0 0 .45rem; font-size: .8rem; color: var(--site-accent-text, #67e8f9); }
+.ta-pack-item {
+  display: grid; grid-template-columns: 16px minmax(0, 1fr);
+  gap: .4rem; align-items: start; padding: .22rem 0; cursor: pointer;
+}
+.ta-pack-item input { width: 14px; height: 14px; margin-top: .15rem; accent-color: var(--site-accent, #22d3ee); cursor: pointer; }
+.ta-pack-name { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; font-size: .82rem; color: var(--site-text, #dbe7f3); }
+.ta-required {
+  padding: .02rem .3rem; border: 1px solid rgba(251,191,36,.35); border-radius: 4px;
+  font-size: .62rem; color: #fbbf24;
+}
+.ta-pack-item small { grid-column: 2; font-size: .7rem; line-height: 1.45; color: var(--site-muted, #8ea3b8); }
+.ta-pack-item.done .ta-pack-name { opacity: .55; text-decoration: line-through; }
+.ta-pack-notes { margin: .7rem 0 0; padding-left: 1.1rem; font-size: .76rem; color: var(--site-muted, #8ea3b8); }
+
+/* ===== 今日 ===== */
+.ta-today { margin-top: 1.4rem; animation: ta-fade .35s ease both; }
+.ta-today-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: .9rem; }
+.ta-today-kicker { margin: 0 0 .25rem; font-size: .68rem; font-weight: 600; letter-spacing: .16em; color: var(--site-accent-text, #67e8f9); }
+.ta-today-head h3 { margin: 0; font-size: 1.12rem; color: #f8fafc; }
+.ta-today-note { margin: .3rem 0 0; font-size: .74rem; color: #fbbf24; }
+.ta-today-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.ta-today-card {
+  min-width: 0; padding: .9rem 1rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 14px;
+  background-color: var(--site-card, rgba(13,24,41,.8));
+}
+.ta-card-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: .55rem; }
+.ta-card-head h4 { margin: 0; font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--site-muted, #8ea3b8); }
+.ta-temp { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; }
+.ta-temp strong { font-size: 1.5rem; color: #f8fafc; }
+.ta-temp span { font-size: .86rem; color: var(--site-accent-text, #67e8f9); font-variant-numeric: tabular-nums; }
+.ta-weather-meta { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .35rem; font-size: .72rem; color: var(--site-muted, #8ea3b8); }
+.ta-weather-meta em { font-style: normal; opacity: .8; }
+.ta-clothing {
+  margin: .6rem 0 0; padding: .45rem .6rem;
+  border-left: 2px solid rgba(34,211,238,.5); border-radius: 0 6px 6px 0;
+  background-color: rgba(34,211,238,.05);
+  font-size: .8rem; line-height: 1.6; color: var(--site-text, #dbe7f3);
+}
+.ta-next-time { margin: 0; font-size: .74rem; color: var(--site-accent-text, #67e8f9); font-variant-numeric: tabular-nums; }
+.ta-next-time span { margin-left: .35rem; color: var(--site-muted, #8ea3b8); }
+.ta-next-name { display: block; margin: .2rem 0; font-size: 1rem; color: #f8fafc; overflow-wrap: anywhere; }
+.ta-next-reason, .ta-next-note { margin: .2rem 0 0; font-size: .78rem; line-height: 1.55; color: var(--site-muted, #8ea3b8); }
+.ta-next-actions { display: flex; gap: .7rem; margin-top: .55rem; font-size: .78rem; }
+.ta-muted { margin: .3rem 0; font-size: .78rem; color: var(--site-muted, #8ea3b8); }
+.ta-route-note { margin: 0 0 .3rem; font-size: .8rem; line-height: 1.6; color: var(--site-text, #dbe7f3); }
+.ta-lodging { margin: .5rem 0 .55rem; font-size: .82rem; color: var(--site-text, #dbe7f3); }
+.ta-lodging b {
+  display: inline-block; margin-right: .4rem; padding: .02rem .35rem;
+  border: 1px solid rgba(139,92,246,.25); border-radius: 4px;
+  background-color: rgba(139,92,246,.12);
+  font-size: .68rem; color: #c4b5fd;
+}
+.ta-mini {
+  padding: .18rem .55rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 6px;
+  background-color: transparent;
+  color: var(--site-accent-text, #67e8f9);
+  font: inherit; font-size: .72rem; cursor: pointer;
+}
+.ta-mini:hover { border-color: rgba(34,211,238,.45); background-color: rgba(34,211,238,.08); }
+.ta-mini:disabled { opacity: .5; cursor: wait; }
+.ta-emergency-list { list-style: none; margin: 0 0 .5rem; padding: 0; display: grid; gap: .3rem; }
+.ta-emergency-list li { display: flex; justify-content: space-between; gap: .6rem; font-size: .82rem; color: var(--site-text, #dbe7f3); }
+.ta-emergency-list a { color: #fda4af; font-weight: 600; text-decoration: none; }
+.ta-hospital { display: block; margin-bottom: .5rem; font-size: .76rem; color: var(--site-accent-text, #67e8f9); }
+
+/* ===== 附近推荐 ===== */
+.ta-poi {
+  margin-top: 1.1rem; padding: 1rem 1.1rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 14px;
+  background-color: rgba(255, 255, 255, .02);
+}
+.ta-poi-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; margin-bottom: .6rem; }
+.ta-poi-head h3 { margin: 0; font-size: 1rem; color: #f8fafc; }
+.ta-fallback, .ta-live {
+  display: inline-block; margin-left: .5rem; padding: .1rem .45rem;
+  border: 1px solid rgba(251,191,36,.35); border-radius: 999px;
+  background-color: rgba(251,191,36,.08);
+  font-size: .68rem; color: #fbbf24;
+}
+.ta-live { border-color: rgba(34,211,238,.35); background-color: rgba(34,211,238,.08); color: var(--site-accent-text, #67e8f9); }
+.ta-poi-tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .7rem; }
+.ta-poi-tab {
+  padding: .25rem .7rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 999px;
+  background-color: transparent;
+  color: var(--site-muted, #8ea3b8);
+  font: inherit; font-size: .78rem; cursor: pointer;
+}
+.ta-poi-tab:hover { color: var(--site-text, #dbe7f3); }
+.ta-poi-tab.active { color: #04121a; font-weight: 600; background-color: var(--site-accent, #22d3ee); border-color: var(--site-accent, #22d3ee); }
+.ta-poi-state { margin: .6rem 0; font-size: .8rem; color: var(--site-muted, #8ea3b8); }
+.ta-poi-state.err { color: #fda4af; }
+.ta-poi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .65rem; }
+.ta-poi-card {
+  min-width: 0; padding: .7rem .8rem;
+  border: 1px solid var(--site-border, rgba(120,160,200,.16)); border-radius: 10px;
+  background-color: var(--site-card, rgba(13,24,41,.8));
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.ta-poi-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.ta-poi-card-head strong { font-size: .88rem; color: #f8fafc; overflow-wrap: anywhere; }
+.ta-poi-distance { flex: none; font-size: .7rem; color: var(--site-accent-text, #67e8f9); font-variant-numeric: tabular-nums; }
+.ta-poi-tags { display: flex; flex-wrap: wrap; gap: .3rem; font-size: .68rem; color: var(--site-muted, #8ea3b8); }
+.ta-poi-tags span { padding: .05rem .35rem; border-radius: 4px; background-color: rgba(255, 255, 255, .04); }
+.ta-poi-addr, .ta-poi-reason { margin: 0; font-size: .74rem; line-height: 1.5; color: var(--site-muted, #8ea3b8); overflow-wrap: anywhere; }
+.ta-poi-reason { color: var(--site-text, #dbe7f3); opacity: .85; }
+.ta-poi-actions { display: flex; gap: .6rem; margin-top: .2rem; font-size: .74rem; }
+.ta-poi-note { margin: .65rem 0 0; font-size: .68rem; color: var(--site-muted, #8ea3b8); opacity: .8; }
+.ta-today-pack { margin-top: 1rem; }
+
+@media (max-width: 860px) {
+  .ta-today-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .ta-today-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .ta-modes { width: 100%; border-radius: 12px; }
+  .ta-mode { flex: 1 1 0; padding: .4rem .3rem; text-align: center; }
+  .ta-profile-row { grid-template-columns: 1fr; gap: .25rem; }
+  .ta-map { height: 250px; }
+  .ta-day-date, .ta-day-header { flex-wrap: wrap; }
+  .ta-poi-grid, .ta-pack-grid { grid-template-columns: 1fr; }
+  .ta-toolbar .ta-ghost { flex: 1 1 auto; text-align: center; }
+  .ta-today-head { flex-direction: column; align-items: stretch; }
+  .ta-poi-head { flex-wrap: wrap; }
+}
+
 </style>
