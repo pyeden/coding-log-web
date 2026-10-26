@@ -348,8 +348,7 @@ const syncWechatCard = () => {
   card.className = 'home-wechat card-box'
   card.setAttribute('aria-label', '微信二维码')
   card.innerHTML =
-    '<img src="/img/wechat-qr.jpg" alt="三木的微信二维码" loading="lazy">' +
-    '<p>微信扫码联系我</p>'
+    '<img src="/img/wechat-qr.jpg" alt="三木的微信二维码" loading="lazy">'
   host.appendChild(card)
 }
 
