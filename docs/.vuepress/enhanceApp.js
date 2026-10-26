@@ -119,6 +119,8 @@ function bindFeatureTilt () {
   let bound = 0
   document.querySelectorAll(TILT_SELECTOR).forEach(el => {
     if (el.__tiltBound) return
+    // 微信二维码卡片不参与 3D 倾斜，避免影响扫码与右栏宽度
+    if (el.id === 'home-wechat-card') return
     // 分页按钮也带 card-box 类，但不是卡片，跳过
     if (el.closest && el.closest('.pagination')) return
     el.__tiltBound = true
