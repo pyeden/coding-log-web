@@ -104,6 +104,8 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
         warnings = []
 
         # 闭馆日检查：优先换一个未使用且当天开放的景点
+        pool_names = {item["name"] for item in pool}
+        today_names = {item["name"] for item in today}
         fixed_today = []
         for attraction in today:
             if _is_closed(attraction, current):
@@ -111,8 +113,9 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
                     (
                         candidate
                         for candidate in profile["attractions"]
-                        if candidate["name"] not in used_names
-                        and candidate["name"] not in [a["name"] for a in today]
+                        if candidate["name"] not in pool_names
+                        and candidate["name"] not in used_names
+                        and candidate["name"] not in today_names
                         and not _is_closed(candidate, current)
                     ),
                     None,
@@ -122,8 +125,15 @@ def _build_days(city: str, start: date, days: int, profile: Dict, preferences: L
                     fixed_today.append(replacement)
                     used_names.add(replacement["name"])
                 else:
-                    warnings.append(f"{attraction['name']} 当天闭馆，建议调整日期")
-                    fixed_today.append(attraction)
+                    warnings.append(f"{attraction['name']} 当天闭馆，已改为自由活动")
+                    fixed_today.append({
+                        "name": "自由活动 / 城市漫步",
+                        "category": "自由",
+                        "duration": 2,
+                        "ticket": 0,
+                        "area": "市区",
+                        "note": f"原定 {attraction['name']} 当天闭馆，改为自由探索",
+                    })
             else:
                 fixed_today.append(attraction)
             used_names.add(attraction["name"])
