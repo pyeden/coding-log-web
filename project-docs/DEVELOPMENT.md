@@ -298,7 +298,7 @@ launchctl kickstart -k gui/$(id -u)/ai.openclaw.travel-api
 ## 12. 已知问题与建议（按优先级）
 
 1. **P0 线上架构**：把 `vuepress dev` 换成 `npm run build` + 静态托管，并加进程守护/健康检查；方案见 `STATIC-HOSTING-PLAN.md`。
-2. **P0 Artalk 持久化（已处理 2026-10-26）**：`ai.openclaw.artalk` 已改为 `~/Library/LaunchAgents/ai.openclaw.artalk.plist`（包装循环 + `RunAtLoad`/`KeepAlive`），副本在 `project-docs/ops/ai.openclaw.artalk.plist`；注意 LaunchAgent 需用户登录后才启动。
+2. **P0 Artalk 持久化（已处理 2026-10-26）**：`ai.openclaw.artalk` 已改为 `/Library/LaunchDaemons/ai.openclaw.artalk.plist`（`UserName=mac` + wrapper 循环 + `RunAtLoad`/`KeepAlive`），开机即启动、不依赖登录；仓库副本在 `project-docs/ops/`；用户 LaunchAgent 作为回退保留。
 3. **P1 站点身份**：统一替换 `DOMAIN_NAME`、`repo`、`blogger`、`author`、`extendFrontmatter`、`public/CNAME`、页脚版权，避免指向 xugaoyi。
 4. **P1 评论/旅行助手路由**：nginx 中 `/api/`、`/api/travel/`、`/sidebar/`、`/_AMapService/` 任何调整都要回归评论和旅行助手。
 5. **P1 依赖锁定**：提交 `package-lock.json`，CI 改用 `npm ci`；同步修正 `ci.yml` 的 yarn 流程。
