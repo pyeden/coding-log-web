@@ -506,6 +506,9 @@ export default {
     },
     async enrichRoutes () {
       if (!window.AMap || !this.result) return
+      // 后端已用高德 Web 服务算好真实路线时，前端不再重复请求
+      const multiStopDays = this.result.days.filter(day => day.items.filter(i => i.lat && i.lng).length > 1)
+      if (multiStopDays.length && multiStopDays.every(day => day.route_km)) return
       await this.ensureDriving()
       for (let i = 0; i < this.result.days.length; i++) {
         const day = this.result.days[i]
