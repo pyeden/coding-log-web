@@ -5,7 +5,7 @@ import 'artalk/dist/Artalk.css'
 // 站点把滚动交给了 .theme-container（position:fixed + overflow-y:auto），
 // 而主题组件用的是 window.scrollTo / window.pageYOffset，所以点击没有反应。
 const BTN_FIX_FLAG = '__vdoingButtonsPatched__'
-const COMMENT_SELECTORS = ['#vuepress-plugin-comment', '#valine-vuepress-comment', '.vssue']
+const COMMENT_SELECTORS = ['#artalk-comments', '#vuepress-plugin-comment', '#valine-vuepress-comment', '.vssue']
 
 const getScroller = () =>
   document.querySelector('.theme-container') || document.scrollingElement
@@ -254,12 +254,14 @@ const pageAllowsComments = path => {
   try {
     const app = document.querySelector('#app') && document.querySelector('#app').__vue__
     const pages = (app && app.$site && app.$site.pages) || []
+    if (!pages.length) return null // 数据未就绪，上层重试
     const page = pages.find(p => p.path === path)
-    const fm = page && page.frontmatter
-    if (!fm) return false
+    if (!page) return null
+    const fm = page.frontmatter
+    if (!fm) return null
     return fm.comment !== false && fm.comments !== false && fm.article !== false && fm.home !== true
   } catch (e) {
-    return false
+    return null
   }
 }
 
@@ -277,9 +279,28 @@ const destroyArtalk = () => {
   if (old && old.parentNode) old.parentNode.removeChild(old)
 }
 
-const mountArtalk = path => {
+let artalkMountedPath = null
+
+const mountArtalk = (path, attempt = 0) => {
+  const allowed = pageAllowsComments(path)
+
+  if (allowed === false) {
+    destroyArtalk()
+    artalkMountedPath = null
+    syncCommentButton()
+    return
+  }
+
+  // 数据或页面内容还没渲染好：重试，而不是直接放弃
+  if (allowed === null || !document.querySelector('.theme-vdoing-content')) {
+    if (attempt < 14) setTimeout(() => mountArtalk(path, attempt + 1), 250)
+    return
+  }
+
+  const existing = document.getElementById('artalk-comments')
+  if (artalkMountedPath === path && existing) return
+
   destroyArtalk()
-  if (!pageAllowsComments(path)) return
   const host = document.querySelector('.theme-vdoing-content')
   if (!host) return
   const el = document.createElement('div')
@@ -291,6 +312,9 @@ const mountArtalk = path => {
     site: ARTALK_SITE,
     darkMode: artalkMode(),
   })
+  artalkMountedPath = path
+  setTimeout(syncCommentButton, 300)
+  setTimeout(syncCommentButton, 1200)
 }
 
 const watchArtalkTheme = () => {
@@ -308,13 +332,15 @@ export default ({ router }) => {
   installCommentGuard(router)
   scheduleTiltBinding()
   watchArtalkTheme()
-  setTimeout(() => mountArtalk(router.currentRoute.path), 700)
-  window.addEventListener('load', () => setTimeout(() => mountArtalk(router.currentRoute.path), 500))
+  mountArtalk(router.currentRoute.path)
+  setTimeout(() => mountArtalk(router.currentRoute.path), 800)
+  window.addEventListener('load', () => mountArtalk(router.currentRoute.path))
   window.addEventListener('load', scheduleTiltBinding)
   router.afterEach(() => {
     setTimeout(syncCommentButton, 600)
     setTimeout(syncCommentButton, 2000)
     scheduleTiltBinding()
-    setTimeout(() => mountArtalk(to.path), 500)
+    mountArtalk(to.path)
+    setTimeout(() => mountArtalk(to.path), 700)
   })
 }
