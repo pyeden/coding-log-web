@@ -299,12 +299,21 @@ export default {
         document.head.appendChild(script)
       })
     },
+    firstStop () {
+      const day = this.result && this.result.days && this.result.days[0]
+      const item = day && day.items.find(i => typeof i.lat === 'number' && typeof i.lng === 'number')
+      if (!item) return null
+      const [lng, lat] = wgs84ToGcj02(item.lng, item.lat)
+      return [lng, lat]
+    },
     initAmap () {
+      if (this.amap) return
       this.provider = 'amap'
       const dark = !document.body.classList.contains('theme-mode-light') && !document.body.classList.contains('theme-mode-read')
+      const center = this.firstStop()
       this.amap = new window.AMap.Map(this.$refs.mapEl, {
-        zoom: 4,
-        center: [108.9, 34.5],
+        zoom: center ? 11 : 4,
+        center: center || [108.9, 34.5],
         viewMode: '2D',
         mapStyle: dark ? 'amap://styles/darkblue' : 'amap://styles/normal',
       })
@@ -480,7 +489,15 @@ export default {
         })
         this.dayBounds[dayIndex] = dayLatLngs
       })
-      if (this.amapOverlays.length) this.amap.setFitView(this.amapOverlays, false, [40, 40, 40, 40], 14)
+      if (this.amapOverlays.length && this._fitResult !== this.result) {
+        this._fitResult = this.result
+        // 等首屏瓦片完成后再 fit，避免频繁缩放取消瓦片请求（net::ERR_ABORTED）
+        setTimeout(() => {
+          if (this.amap && this.amapOverlays.length) {
+            this.amap.setFitView(this.amapOverlays, false, [40, 40, 40, 40], 14)
+          }
+        }, 350)
+      }
       this.enrichRoutes()
     },
     ensureDriving () {
