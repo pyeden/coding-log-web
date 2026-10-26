@@ -316,6 +316,8 @@ stat -f '%Sp %Su:%Sg %N' /Users/mac
 
 > 如果原始 ACL 不是默认状态，按 `/tmp/users-mac-before-static.txt` 记录恢复；不要用整段 `chmod` 覆盖未知 ACL。
 
+> **注意**：nginx 由 LaunchDaemon `ai.openclaw.nginx` 以 `-g 'daemon off;'` 运行，不会生成 pid 文件，`sudo nginx -s reload` 会报 `open() "/usr/local/var/run/nginx.pid" failed (2: No such file or directory)`；重载必须用 `sudo launchctl kickstart -k system/ai.openclaw.nginx`。`sudo nginx -t` 仍可用于语法校验。
+
 ## 6. 发布与切换步骤（建议方案 A）
 
 ### 6.1 为什么不在 Mac mini 原地构建
@@ -434,19 +436,19 @@ grep -rlq 'window._AMapSecurityConfig' docs/.vuepress/dist && echo "AMap securit
    sudo nginx -t
    ```
 
-7. **灰度验证**：用独立 nginx 实例监听 `127.0.0.1:8890`，`root` 指向 `current/dist`，通过 SSH 隧道或带 Host 头请求验证第 7 节清单；灰度实例的 worker 也应使用 `nobody`，否则权限验证不具代表性。确认后再 reload 生产。
+7. **灰度验证**：用独立 nginx 实例监听 `127.0.0.1:8890`，`root` 指向 `current/dist`，通过 SSH 隧道或带 Host 头请求验证第 7 节清单；灰度实例的 worker 也应使用 `nobody`，否则权限验证不具代表性。确认后再 kickstart 生产。
 
 8. **切换生产**
 
    ```bash
-   sudo nginx -s reload
+   sudo launchctl kickstart -k system/ai.openclaw.nginx
    # 立即验证不是 403
    curl -s -o /dev/null -w '%{http_code}\n' https://seres-ai.com/
    ```
 
    8080 继续运行，不停止；保留至少 24–48 小时作为回滚路径。
 
-9. **观察与收尾**：检查 nginx access/error log、`https://seres-ai.com/`、评论、旅行助手；稳定后再决定是否停止 8080 并删除 HMR location（第二次 reload）。
+9. **观察与收尾**：检查 nginx access/error log、`https://seres-ai.com/`、评论、旅行助手；稳定后再决定是否停止 8080 并删除 HMR location（第二次 kickstart）。
 
 ### 6.3 回滚
 
@@ -465,7 +467,7 @@ readlink current        # 必须指向上一版
 ls -ld current
 ```
 
-nginx 的 `root` 指向 `current/dist`，软链切换后新请求即读取旧产物；默认未启用 `open_file_cache`，无需 reload。若启用了 `open_file_cache`，执行 `sudo nginx -s reload` 清缓存。
+nginx 的 `root` 指向 `current/dist`，软链切换后新请求即读取旧产物；默认未启用 `open_file_cache`，无需 reload。若启用了 `open_file_cache`，执行 `sudo launchctl kickstart -k system/ai.openclaw.nginx` 清缓存。
 
 **nginx 配置回滚**
 
@@ -473,7 +475,7 @@ nginx 的 `root` 指向 `current/dist`，软链切换后新请求即读取旧产
 cd /Users/mac/coding-log-web
 sudo cp nginx/server/https.conf.bak-<timestamp> nginx/server/https.conf
 sudo nginx -t
-sudo nginx -s reload
+sudo launchctl kickstart -k system/ai.openclaw.nginx
 ```
 
 因为 8080 dev server 一直在跑，回滚后 `/` 立即恢复原状。若已停止 8080，按 `project-docs/DEVELOPMENT.md` 的发布流程重启 dev server。
