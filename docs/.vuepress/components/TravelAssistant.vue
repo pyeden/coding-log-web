@@ -475,18 +475,6 @@ export default {
           })
         if (!points.length) return
         const dayLatLngs = points.map(p => p.position)
-        if (points.length > 1) {
-          const line = new AMap.Polyline({
-            path: dayLatLngs,
-            strokeColor: color,
-            strokeWeight: 3,
-            strokeOpacity: 0.8,
-            strokeStyle: 'dashed',
-            lineJoin: 'round',
-          })
-          this.amap.add(line)
-          this.amapOverlays.push(line)
-        }
         points.forEach(({ item, position }, index) => {
           const marker = new AMap.Marker({
             position,
@@ -517,20 +505,9 @@ export default {
         })
         this.amap.add(marker)
         this.amapOverlays.push(marker)
-        const first = this.dayBounds[0] && this.dayBounds[0][0]
-        if (first) {
-          const leg = new AMap.Polyline({
-            path: [position, first],
-            strokeColor: '#fbbf24',
-            strokeWeight: 3,
-            strokeOpacity: 0.9,
-            strokeStyle: 'dashed',
-            lineJoin: 'round',
-          })
-          this.amap.add(leg)
-          this.amapOverlays.push(leg)
-        }
       }
+
+      this.drawRealRoutes()
 
       if (this.amapOverlays.length && this._fitResult !== this.result) {
         this._fitResult = this.result
@@ -542,6 +519,63 @@ export default {
         }, 350)
       }
       this.enrichRoutes()
+    },
+    async drivingPath (from, to) {
+      return new Promise(resolve => {
+        this._driving.search(from, to, (status, result) => {
+          if (status === 'complete' && result.routes && result.routes[0]) {
+            const route = result.routes[0]
+            const path = (route.steps || []).reduce((acc, step) => {
+              (step.path || []).forEach(p => acc.push([p.lng, p.lat]))
+              return acc
+            }, [])
+            resolve(path.length ? path : null)
+          } else {
+            resolve(null)
+          }
+        })
+      })
+    },
+    async drawRealRoutes () {
+      if (!this.amap || !this.result) return
+      await this.ensureDriving()
+      if (!this._routeLines) this._routeLines = []
+      this._routeLines.forEach(line => this.amap.remove(line))
+      this._routeLines = []
+      const draw = (path, color, dashed) => {
+        const line = new window.AMap.Polyline({
+          path,
+          strokeColor: color,
+          strokeWeight: 4,
+          strokeOpacity: 0.88,
+          strokeStyle: dashed ? 'dashed' : 'solid',
+          lineJoin: 'round',
+          showDir: true,
+        })
+        this.amap.add(line)
+        this._routeLines.push(line)
+      }
+      for (let i = 0; i < this.result.days.length; i++) {
+        const day = this.result.days[i]
+        const color = this.dayColors[i % this.dayColors.length]
+        const stops = day.items
+          .filter(item => typeof item.lat === 'number' && typeof item.lng === 'number')
+          .map(item => {
+            const [lng, lat] = wgs84ToGcj02(item.lng, item.lat)
+            return [lng, lat]
+          })
+        for (let k = 0; k < stops.length - 1; k++) {
+          const path = await this.drivingPath(stops[k], stops[k + 1])
+          draw(path || [stops[k], stops[k + 1]], color, !path)
+        }
+      }
+      const origin = this.result.origin
+      const first = this.dayBounds[0] && this.dayBounds[0][0]
+      if (origin && first) {
+        const from = [origin.lng, origin.lat]
+        const path = await this.drivingPath(from, first)
+        draw(path || [from, first], '#fbbf24', !path)
+      }
     },
     ensureDriving () {
       if (this._driving) return Promise.resolve(this._driving)

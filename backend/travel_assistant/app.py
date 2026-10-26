@@ -32,6 +32,8 @@ def _load_root_env() -> None:
 _load_root_env()
 AMAP_KEY = os.environ.get("AMAP_JS_KEY", "").strip()
 AMAP_SECURITY_CODE = os.environ.get("AMAP_SECURITY_CODE", "").strip()
+AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY", "").strip()
+AMAP_WEB_SECRET = os.environ.get("AMAP_WEB_SECRET", "").strip()
 AMAP_ALLOWED_PREFIXES = ("v3/", "v4/", "v5/", "ws/")
 AMAP_HOST = "https://restapi.amap.com"
 
@@ -102,15 +104,18 @@ def _driving(origin: tuple[float, float], destination: tuple[float, float]) -> t
     result = None
     if AMAP_WEB_KEY:
         try:
-            data = _amap_web_get("v3/direction/driving", {
-                "origin": f"{origin[0]:.6f},{origin[1]:.6f}",
+            data = _amap_web_get("v3/distance", {
+                "origins": f"{origin[0]:.6f},{origin[1]:.6f}",
                 "destination": f"{destination[0]:.6f},{destination[1]:.6f}",
-                "strategy": 0,
-                "extensions": "base",
+                "type": 1,
             })
-            if data.get("status") == "1" and data.get("routes"):
-                route = data["routes"][0]
-                result = (round(int(route["distance"]) / 1000, 1), max(1, round(int(route["time"]) / 60)))
+            results = data.get("results") or []
+            if data.get("status") == "1" and results:
+                item = results[0]
+                distance = int(item.get("distance") or 0)
+                duration = int(item.get("duration") or 0)
+                if distance:
+                    result = (round(distance / 1000, 1), max(1, round(duration / 60)))
         except Exception:
             result = None
     _DRIVE_CACHE[key] = result
