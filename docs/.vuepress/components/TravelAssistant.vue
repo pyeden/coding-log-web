@@ -145,6 +145,8 @@
               <b v-if="day.route_km" class="ta-day-stat">驾车 {{ day.route_km }} km · {{ day.route_min }} 分钟</b>
               <b v-else-if="day.distance_km" class="ta-day-stat">{{ day.distance_km }} km</b>
               <b v-if="day.spend" class="ta-day-stat">≈ ¥{{ money(day.spend) }}</b>
+              <b v-if="day.tolls" class="ta-day-stat">过路费 ¥{{ day.tolls }}</b>
+              <b v-if="day.lights" class="ta-day-stat">{{ day.lights }} 个红绿灯</b>
             </div>
             <em>{{ day.theme }}</em>
           </header>
@@ -529,12 +531,38 @@ export default {
               (step.path || []).forEach(p => acc.push([p.lng, p.lat]))
               return acc
             }, [])
-            resolve(path.length ? path : null)
+            resolve({
+              path: path.length ? path : null,
+              tolls: Number(route.tolls || 0),
+              lights: Number(route.traffic_lights || 0),
+              distance: Number(route.distance || 0),
+              time: Number(route.time || 0),
+            })
           } else {
             resolve(null)
           }
         })
       })
+    },
+    addRouteLabel (position, text, color) {
+      const label = new window.AMap.Text({
+        text,
+        position,
+        anchor: 'center',
+        offset: new window.AMap.Pixel(0, -10),
+        style: {
+          'background-color': 'rgba(4, 18, 26, 0.86)',
+          'border': `1px solid ${color}`,
+          'color': '#dbe7f3',
+          'padding': '2px 6px',
+          'border-radius': '6px',
+          'font-size': '10px',
+          'line-height': '14px',
+          'white-space': 'nowrap',
+        },
+      })
+      this.amap.add(label)
+      this._routeLines.push(label)
     },
     async drawRealRoutes () {
       if (!this.amap || !this.result) return
@@ -555,6 +583,7 @@ export default {
         this.amap.add(line)
         this._routeLines.push(line)
       }
+      let lastPoint = null
       for (let i = 0; i < this.result.days.length; i++) {
         const day = this.result.days[i]
         const color = this.dayColors[i % this.dayColors.length]
@@ -564,17 +593,68 @@ export default {
             const [lng, lat] = wgs84ToGcj02(item.lng, item.lat)
             return [lng, lat]
           })
+        let tolls = 0
+        let lights = 0
         for (let k = 0; k < stops.length - 1; k++) {
-          const path = await this.drivingPath(stops[k], stops[k + 1])
+          const seg = await this.drivingPath(stops[k], stops[k + 1])
+          const path = seg && seg.path
           draw(path || [stops[k], stops[k + 1]], color, !path)
+          if (seg) {
+            tolls += seg.tolls
+            lights += seg.lights
+            this.addRouteLabel(
+              path ? path[Math.floor(path.length / 2)] : stops[k],
+              `${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+              color
+            )
+          }
+        }
+        if (stops.length) lastPoint = stops[stops.length - 1]
+        if (tolls || lights) {
+          this.$set(day, 'tolls', Math.round(tolls))
+          this.$set(day, 'lights', lights)
         }
       }
       const origin = this.result.origin
       const first = this.dayBounds[0] && this.dayBounds[0][0]
       if (origin && first) {
         const from = [origin.lng, origin.lat]
-        const path = await this.drivingPath(from, first)
+        const seg = await this.drivingPath(from, first)
+        const path = seg && seg.path
         draw(path || [from, first], '#fbbf24', !path)
+        if (seg) {
+          this.$set(this.result, 'origin_leg', {
+            km: Math.round(seg.distance / 100) / 10,
+            min: Math.max(1, Math.round(seg.time / 60)),
+            tolls: Math.round(seg.tolls),
+            lights: seg.lights,
+          })
+          this.addRouteLabel(
+            path ? path[Math.floor(path.length / 2)] : from,
+            `出发 ${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+            '#fbbf24'
+          )
+        }
+      }
+      // 返程：最后一天最后一个景点 → 出发地
+      if (origin && lastPoint) {
+        const to = [origin.lng, origin.lat]
+        const seg = await this.drivingPath(lastPoint, to)
+        const path = seg && seg.path
+        draw(path || [lastPoint, to], '#fbbf24', !path)
+        if (seg) {
+          this.$set(this.result, 'return_leg', {
+            km: Math.round(seg.distance / 100) / 10,
+            min: Math.max(1, Math.round(seg.time / 60)),
+            tolls: Math.round(seg.tolls),
+            lights: seg.lights,
+          })
+          this.addRouteLabel(
+            path ? path[Math.floor(path.length / 2)] : to,
+            `返程 ${(seg.distance / 1000).toFixed(1)} km · 过路费 ¥${Math.round(seg.tolls)} · ${seg.lights} 红灯`,
+            '#fbbf24'
+          )
+        }
       }
     },
     ensureDriving () {
