@@ -93,6 +93,13 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         ],
       },
       {
+        text: '编程',
+        link: '/programming/',
+        items: [
+          { text: 'Python学习笔记', link: '/note/python/' },
+        ],
+      },
+      {
         text: '页面',
         link: '/ui/',
         items: [
