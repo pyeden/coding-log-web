@@ -116,6 +116,10 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
             text: '学习笔记',
             items: [
               { text: 'EEA整车电子电气架构学习笔记', link: '/note/eea/' },
+              { text: '整车开发流程与项目管理', link: '/note/vehicle-dev/' },
+              { text: '整车集成与性能属性', link: '/note/vehicle-integration/' },
+              { text: '车身与内外饰', link: '/note/body-interior/' },
+              { text: '底盘系统', link: '/note/chassis/' },
             ],
           },
         ],
