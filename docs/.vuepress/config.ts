@@ -52,7 +52,13 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     nav: [
       { text: '首页', link: '/' },
       { text: '项目', link: '/projects/' },
-      { text: 'AI技术', link: '/ai/' },
+      {
+        text: 'AI技术',
+        link: '/ai/', // 目录页；点击一级导航进入 AI技术 目录
+        items: [
+          { text: 'hello-agent学习笔记', link: '/note/hello-agent/' },
+        ],
+      },
       {
         text: '编程',
         link: '/programming/', // 目录页；点击一级导航进入编程目录
