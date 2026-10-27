@@ -57,6 +57,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         link: '/ai/', // 目录页；点击一级导航进入 AI技术 目录
         items: [
           { text: 'hello-agent学习笔记', link: '/note/hello-agent/' },
+          { text: 'OpenClaw架构学习笔记', link: '/note/openclaw-arch/' },
         ],
       },
       {
