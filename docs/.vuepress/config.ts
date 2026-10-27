@@ -54,19 +54,16 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
       { text: '项目', link: '/projects/' },
       { text: 'AI技术', link: '/ai/' },
       {
-        text: '前端',
-        link: '/web/', //目录页链接，此处link是vdoing主题新增的配置项，有二级导航时，可以点击一级导航跳到目录页
+        text: '编程',
+        link: '/programming/', // 目录页；点击一级导航进入编程目录
         items: [
-          // 说明：以下所有link的值只是在相应md文件头部定义的永久链接（不是什么特殊编码）。另外，注意结尾是有斜杠的
+          { text: 'Python学习笔记', link: '/note/python/' },
+          // 前端、页面下沉为「编程」的二级菜单
           {
-            text: '前端文章',
+            text: '前端',
             items: [
+              { text: '前端目录', link: '/web/' },
               { text: 'JavaScript', link: '/pages/8143cc480faf9a11/' },
-            ],
-          },
-          {
-            text: '学习笔记',
-            items: [
               { text: '《JavaScript教程》', link: '/note/javascript/' },
               { text: '《JavaScript高级程序设计》', link: '/note/js/' },
               { text: '《ES6 教程》', link: '/note/es6/' },
@@ -76,35 +73,19 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
                 text: '《TypeScript 从零实现 axios》',
                 link: '/note/typescript-axios/',
               },
-              {
-                text: '《Git》',
-                link: '/note/git/',
-              },
-              {
-                text: 'TypeScript',
-                link: '/pages/51afd6/',
-              },
-              {
-                text: 'JS设计模式总结',
-                link: '/pages/4643cd/',
-              },
+              { text: '《Git》', link: '/note/git/' },
+              { text: 'TypeScript', link: '/pages/51afd6/' },
+              { text: 'JS设计模式总结', link: '/pages/4643cd/' },
             ],
           },
-        ],
-      },
-      {
-        text: '编程',
-        link: '/programming/',
-        items: [
-          { text: 'Python学习笔记', link: '/note/python/' },
-        ],
-      },
-      {
-        text: '页面',
-        link: '/ui/',
-        items: [
-          { text: 'HTML', link: '/pages/8309a5b876fc95e3/' },
-          { text: 'CSS', link: '/pages/0a83b083bdf257cb/' },
+          {
+            text: '页面',
+            items: [
+              { text: '页面目录', link: '/ui/' },
+              { text: 'HTML', link: '/pages/8309a5b876fc95e3/' },
+              { text: 'CSS', link: '/pages/0a83b083bdf257cb/' },
+            ],
+          },
         ],
       },
       {
