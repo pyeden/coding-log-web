@@ -98,6 +98,13 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         ],
       },
       {
+        text: '汽车开发',
+        link: '/auto/',
+        items: [
+          { text: '学习笔记', link: '/note/eea/' },
+        ],
+      },
+      {
         text: '技术',
         link: '/technology/',
         items: [
