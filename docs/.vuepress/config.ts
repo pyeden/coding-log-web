@@ -56,18 +56,28 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         text: 'AI技术',
         link: '/ai/', // 目录页；点击一级导航进入 AI技术 目录
         items: [
-          { text: 'hello-agent学习笔记', link: '/note/hello-agent/' },
-          { text: 'OpenClaw架构学习笔记', link: '/note/openclaw-arch/' },
+          {
+            text: '学习笔记',
+            items: [
+              { text: 'hello-agent学习笔记', link: '/note/hello-agent/' },
+              { text: 'OpenClaw架构学习笔记', link: '/note/openclaw-arch/' },
+            ],
+          },
         ],
       },
       {
         text: '编程',
         link: '/programming/', // 目录页；点击一级导航进入编程目录
         items: [
-          { text: 'Python学习笔记', link: '/note/python/' },
-          { text: 'Java学习笔记', link: '/note/java/' },
-          { text: 'Go学习笔记', link: '/note/go/' },
-          { text: 'C++学习笔记', link: '/note/cpp/' },
+          {
+            text: '学习笔记',
+            items: [
+              { text: 'Python学习笔记', link: '/note/python/' },
+              { text: 'Java学习笔记', link: '/note/java/' },
+              { text: 'Go学习笔记', link: '/note/go/' },
+              { text: 'C++学习笔记', link: '/note/cpp/' },
+            ],
+          },
           // 前端、页面下沉为「编程」的二级菜单
           {
             text: '前端',
