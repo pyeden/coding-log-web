@@ -78,6 +78,16 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: 'C++学习笔记', link: '/note/cpp/' },
             ],
           },
+          {
+            text: '自动化',
+            items: [
+              { text: '自动化学习笔记', link: '/note/automation/' },
+              { text: 'Web自动化教程', link: '/note/automation/web/' },
+              { text: 'API自动化教程', link: '/note/automation/api/' },
+              { text: 'Android自动化教程', link: '/note/automation/android/' },
+              { text: 'iOS自动化教程', link: '/note/automation/ios/' },
+            ],
+          },
           // 前端、页面下沉为「编程」的二级菜单
           {
             text: '前端',
@@ -120,6 +130,10 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: '整车集成与性能属性', link: '/note/vehicle-integration/' },
               { text: '车身与内外饰', link: '/note/body-interior/' },
               { text: '底盘系统', link: '/note/chassis/' },
+              { text: '动力总成与三电', link: '/note/powertrain/' },
+              { text: '热管理', link: '/note/thermal/' },
+              { text: '整车安全与法规', link: '/note/vehicle-safety/' },
+              { text: '汽车软件与AUTOSAR', link: '/note/autosar/' },
             ],
           },
         ],
