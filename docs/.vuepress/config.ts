@@ -64,6 +64,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         link: '/programming/', // 目录页；点击一级导航进入编程目录
         items: [
           { text: 'Python学习笔记', link: '/note/python/' },
+          { text: 'C++学习笔记', link: '/note/cpp/' },
           // 前端、页面下沉为「编程」的二级菜单
           {
             text: '前端',
