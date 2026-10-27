@@ -3,7 +3,7 @@ home: true
 title: 首页
 bannerBg: "background: radial-gradient(700px circle at 12% 18%, var(--site-glow), transparent 55%), radial-gradient(620px circle at 88% 8%, var(--site-glow-2), transparent 52%), linear-gradient(180deg, var(--site-hero-veil), transparent 88%); color: var(--site-text)"
 # heroImage: /img/web.png
-heroText: 三木
+heroText: 三木 vlog
 tagline: 技术苦行僧，积跬步以至千里，致敬每个爱学习的你。
 # actionText: 立刻进入 →
 # actionLink: /web/
