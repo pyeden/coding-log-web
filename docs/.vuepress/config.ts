@@ -61,8 +61,8 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
             items: [
               { text: 'hello-agent学习笔记', link: '/note/hello-agent/' },
               { text: 'OpenClaw架构学习笔记', link: '/note/openclaw-arch/' },
-              { text: 'n8n架构学习笔记', link: '/note/n8n-arch/' },
               { text: 'Dify架构学习笔记', link: '/note/dify/' },
+              { text: 'n8n架构学习笔记', link: '/note/n8n-arch/' },
               { text: 'LangGraph学习笔记', link: '/note/langgraph/' },
             ],
           },
