@@ -1,228 +1,228 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 1929" width="1040" height="1929" role="img" aria-label="OpenClaw 详细架构图">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 1999" width="1040" height="1999" role="img" aria-label="OpenClaw 详细架构图">
 <defs>
 <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
 <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker>
 <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
 <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94A3B8"/></marker>
 </defs>
-<rect x="0" y="0" width="1040" height="1929" fill="#FFFFFF"/>
-<rect x="8" y="8" width="1024" height="1913" rx="18" fill="none" stroke="#E2E8F0" stroke-width="1.5"/>
+<rect x="0" y="0" width="1040" height="1999" fill="#FFFFFF"/>
+<rect x="8" y="8" width="1024" height="1983" rx="18" fill="none" stroke="#E2E8F0" stroke-width="1.5"/>
 <text x="32" y="58" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="28" font-weight="bold" fill="#0F172A" text-anchor="start">OpenClaw 详细架构图</text>
 <text x="32" y="86" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" font-weight="normal" fill="#64748B" text-anchor="start">四层视图：接入 → 协议与入口 → Gateway 内核 → 下游依赖</text>
-<rect x="24" y="112" width="992" height="369" rx="16" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1.6"/>
+<rect x="24" y="112" width="992" height="383" rx="16" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1.6"/>
 <text x="44" y="143" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#1D4ED8" text-anchor="start" letter-spacing="1">接入层</text>
-<rect x="24" y="495" width="992" height="350" rx="16" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1.6"/>
-<text x="44" y="526" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#047857" text-anchor="start" letter-spacing="1">协议与入口</text>
-<rect x="24" y="859" width="992" height="580" rx="16" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.6"/>
-<text x="44" y="890" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#C2410C" text-anchor="start" letter-spacing="1">Gateway 内核</text>
-<rect x="24" y="1453" width="992" height="312" rx="16" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1.6"/>
-<text x="44" y="1484" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#6D28D9" text-anchor="start" letter-spacing="1">下游依赖</text>
-<g class="card" data-i="0" data-title="渠道 Channels" data-x="40" data-y="158" data-w="470" data-h="156">
-<rect x="40" y="158" width="470" height="156" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
-<line x1="56" y1="197" x2="494" y2="197" stroke="#EEF2F7" stroke-width="1"/>
+<rect x="24" y="509" width="992" height="364" rx="16" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1.6"/>
+<text x="44" y="540" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#047857" text-anchor="start" letter-spacing="1">协议与入口</text>
+<rect x="24" y="887" width="992" height="608" rx="16" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.6"/>
+<text x="44" y="918" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#C2410C" text-anchor="start" letter-spacing="1">Gateway 内核</text>
+<rect x="24" y="1509" width="992" height="326" rx="16" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1.6"/>
+<text x="44" y="1540" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="20" font-weight="bold" fill="#6D28D9" text-anchor="start" letter-spacing="1">下游依赖</text>
+<g class="card" data-i="0" data-title="渠道 Channels" data-x="40" data-y="158" data-w="470" data-h="163">
+<rect x="40" y="158" width="470" height="163" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+<line x1="56" y1="201" x2="494" y2="201" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="187" font-size="17" font-weight="bold" fill="#1D4ED8">渠道 Channels</tspan>
-<tspan x="56" y="220">WhatsApp / Baileys · Telegram / grammY</tspan>
-<tspan x="56" y="239">Slack · Discord · Signal · iMessage</tspan>
-<tspan x="56" y="258">WebChat（静态 UI，复用 Gateway WS）</tspan>
-<tspan x="56" y="277">渠道连接与账号由 Gateway 独占持有</tspan>
-<tspan x="56" y="296">每主机仅一个 Baileys 会话（不变量）</tspan>
+<tspan x="56" y="191" font-size="17" font-weight="bold" fill="#1D4ED8">渠道 Channels</tspan>
+<tspan x="56" y="224">WhatsApp / Baileys · Telegram / grammY</tspan>
+<tspan x="56" y="243">Slack · Discord · Signal · iMessage</tspan>
+<tspan x="56" y="262">WebChat（静态 UI，复用 Gateway WS）</tspan>
+<tspan x="56" y="281">渠道连接与账号由 Gateway 独占持有</tspan>
+<tspan x="56" y="300">每主机仅一个 Baileys 会话（不变量）</tspan>
 </text>
 </g>
-<g class="card" data-i="1" data-title="Operator 客户端" data-x="530" data-y="158" data-w="470" data-h="137">
-<rect x="530" y="158" width="470" height="137" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
-<line x1="546" y1="197" x2="984" y2="197" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="1" data-title="Operator 客户端" data-x="530" data-y="158" data-w="470" data-h="144">
+<rect x="530" y="158" width="470" height="144" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+<line x1="546" y1="201" x2="984" y2="201" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="187" font-size="17" font-weight="bold" fill="#1D4ED8">Operator 客户端</tspan>
-<tspan x="546" y="220">CLI · Web Control UI · macOS App · 自动化</tspan>
-<tspan x="546" y="239">role: operator，一客户端一条 WS</tspan>
-<tspan x="546" y="258">请求 health / status / send / agent</tspan>
-<tspan x="546" y="277">订阅 tick / agent / presence / shutdown</tspan>
+<tspan x="546" y="191" font-size="17" font-weight="bold" fill="#1D4ED8">Operator 客户端</tspan>
+<tspan x="546" y="224">CLI · Web Control UI · macOS App · 自动化</tspan>
+<tspan x="546" y="243">role: operator，一客户端一条 WS</tspan>
+<tspan x="546" y="262">请求 health / status / send / agent</tspan>
+<tspan x="546" y="281">订阅 tick / agent / presence / shutdown</tspan>
 </text>
 </g>
-<g class="card" data-i="2" data-title="节点 Nodes（role: node）" data-x="530" data-y="330" data-w="470" data-h="137">
-<rect x="530" y="330" width="470" height="137" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
-<line x1="546" y1="369" x2="984" y2="369" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="2" data-title="节点 Nodes（role: node）" data-x="530" data-y="337" data-w="470" data-h="144">
+<rect x="530" y="337" width="470" height="144" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+<line x1="546" y1="380" x2="984" y2="380" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="359" font-size="17" font-weight="bold" fill="#1D4ED8">节点 Nodes（role: node）</tspan>
-<tspan x="546" y="392">macOS · iOS · Android · headless</tspan>
-<tspan x="546" y="411">connect 声明 caps / commands / permissions</tspan>
-<tspan x="546" y="430">camera.* · screen.record · location.get · canvas.*</tspan>
-<tspan x="546" y="449">设备身份 + 配对审批；非本地需显式批准</tspan>
+<tspan x="546" y="370" font-size="17" font-weight="bold" fill="#1D4ED8">节点 Nodes（role: node）</tspan>
+<tspan x="546" y="403">macOS · iOS · Android · headless</tspan>
+<tspan x="546" y="422">connect 声明 caps / commands / permissions</tspan>
+<tspan x="546" y="441">camera.* · screen.record · location.get · canvas.*</tspan>
+<tspan x="546" y="460">设备身份 + 配对审批；非本地需显式批准</tspan>
 </text>
 </g>
-<g class="card" data-i="3" data-title="WebSocket 单端口 127.0.0.1:18789" data-x="40" data-y="541" data-w="470" data-h="156">
-<rect x="40" y="541" width="470" height="156" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
-<line x1="56" y1="580" x2="494" y2="580" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="3" data-title="WebSocket 单端口 127.0.0.1:18789" data-x="40" data-y="555" data-w="470" data-h="163">
+<rect x="40" y="555" width="470" height="163" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
+<line x1="56" y1="598" x2="494" y2="598" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="570" font-size="17" font-weight="bold" fill="#047857">WebSocket 单端口 127.0.0.1:18789</tspan>
-<tspan x="56" y="603">首帧必须是 connect，否则硬关闭</tspan>
-<tspan x="56" y="622">hello-ok：presence / health 快照</tspan>
-<tspan x="56" y="641">req/res（按 id 关联）· event（seq 序号）</tspan>
-<tspan x="56" y="660">副作用方法 send / agent 要求幂等键</tspan>
-<tspan x="56" y="679">事件不重放，缺口需重新拉取快照</tspan>
+<tspan x="56" y="588" font-size="17" font-weight="bold" fill="#047857">WebSocket 单端口 127.0.0.1:18789</tspan>
+<tspan x="56" y="621">首帧必须是 connect，否则硬关闭</tspan>
+<tspan x="56" y="640">hello-ok：presence / health 快照</tspan>
+<tspan x="56" y="659">req/res（按 id 关联）· event（seq 序号）</tspan>
+<tspan x="56" y="678">副作用方法 send / agent 要求幂等键</tspan>
+<tspan x="56" y="697">事件不重放，缺口需重新拉取快照</tspan>
 </text>
 </g>
-<g class="card" data-i="4" data-title="HTTP API（同一端口）" data-x="530" data-y="713" data-w="470" data-h="118">
-<rect x="530" y="713" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
-<line x1="546" y1="752" x2="984" y2="752" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="4" data-title="HTTP API（同一端口）" data-x="530" data-y="734" data-w="470" data-h="125">
+<rect x="530" y="734" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
+<line x1="546" y1="777" x2="984" y2="777" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="742" font-size="17" font-weight="bold" fill="#047857">HTTP API（同一端口）</tspan>
-<tspan x="546" y="775">/v1/models · /v1/chat/completions</tspan>
-<tspan x="546" y="794">/__openclaw__/canvas/ · /__openclaw__/a2ui/</tspan>
-<tspan x="546" y="813">OpenAI 兼容入口 + 托管组件资源</tspan>
+<tspan x="546" y="767" font-size="17" font-weight="bold" fill="#047857">HTTP API（同一端口）</tspan>
+<tspan x="546" y="800">/v1/models · /v1/chat/completions</tspan>
+<tspan x="546" y="819">/__openclaw__/canvas/ · /__openclaw__/a2ui/</tspan>
+<tspan x="546" y="838">OpenAI 兼容入口 + 托管组件资源</tspan>
 </text>
 </g>
-<g class="card" data-i="5" data-title="认证与配对" data-x="530" data-y="541" data-w="470" data-h="156">
-<rect x="530" y="541" width="470" height="156" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
-<line x1="546" y1="580" x2="984" y2="580" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="5" data-title="认证与配对" data-x="530" data-y="555" data-w="470" data-h="163">
+<rect x="530" y="555" width="470" height="163" rx="10" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.5"/>
+<line x1="546" y1="598" x2="984" y2="598" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="570" font-size="17" font-weight="bold" fill="#047857">认证与配对</tspan>
-<tspan x="546" y="603">device token：配对后签发并重连</tspan>
-<tspan x="546" y="622">所有连接签 connect.challenge nonce</tspan>
-<tspan x="546" y="641">签名 v3 绑定 platform / deviceFamily</tspan>
-<tspan x="546" y="660">Tailscale Serve · trusted-proxy 身份认证</tspan>
-<tspan x="546" y="679">loopback 自动批准，非本地需审批</tspan>
+<tspan x="546" y="588" font-size="17" font-weight="bold" fill="#047857">认证与配对</tspan>
+<tspan x="546" y="621">device token：配对后签发并重连</tspan>
+<tspan x="546" y="640">所有连接签 connect.challenge nonce</tspan>
+<tspan x="546" y="659">签名 v3 绑定 platform / deviceFamily</tspan>
+<tspan x="546" y="678">Tailscale Serve · trusted-proxy 身份认证</tspan>
+<tspan x="546" y="697">loopback 自动批准，非本地需审批</tspan>
 </text>
 </g>
-<g class="card" data-i="6" data-title="渠道管理器" data-x="40" data-y="905" data-w="470" data-h="118">
-<rect x="40" y="905" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="56" y1="944" x2="494" y2="944" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="6" data-title="渠道管理器" data-x="40" data-y="933" data-w="470" data-h="125">
+<rect x="40" y="933" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="56" y1="976" x2="494" y2="976" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="934" font-size="17" font-weight="bold" fill="#C2410C">渠道管理器</tspan>
-<tspan x="56" y="967">各渠道账号、连接、重试与规范化</tspan>
-<tspan x="56" y="986">消息 → 会话键 → 入队</tspan>
-<tspan x="56" y="1005">渠道侧状态的唯一持有者</tspan>
+<tspan x="56" y="966" font-size="17" font-weight="bold" fill="#C2410C">渠道管理器</tspan>
+<tspan x="56" y="999">各渠道账号、连接、重试与规范化</tspan>
+<tspan x="56" y="1018">消息 → 会话键 → 入队</tspan>
+<tspan x="56" y="1037">渠道侧状态的唯一持有者</tspan>
 </text>
 </g>
-<g class="card" data-i="7" data-title="会话与队列" data-x="530" data-y="905" data-w="470" data-h="118">
-<rect x="530" y="905" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="546" y1="944" x2="984" y2="944" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="7" data-title="会话与队列" data-x="530" data-y="933" data-w="470" data-h="125">
+<rect x="530" y="933" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="546" y1="976" x2="984" y2="976" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="934" font-size="17" font-weight="bold" fill="#C2410C">会话与队列</tspan>
-<tspan x="546" y="967">session 投影与历史</tspan>
-<tspan x="546" y="986">lanes 车道 · 并发上限</tspan>
-<tspan x="546" y="1005">queue-steering · compaction</tspan>
+<tspan x="546" y="966" font-size="17" font-weight="bold" fill="#C2410C">会话与队列</tspan>
+<tspan x="546" y="999">session 投影与历史</tspan>
+<tspan x="546" y="1018">lanes 车道 · 并发上限</tspan>
+<tspan x="546" y="1037">queue-steering · compaction</tspan>
 </text>
 </g>
-<g class="card" data-i="8" data-title="Agent 运行时" data-x="40" data-y="1039" data-w="470" data-h="118">
-<rect x="40" y="1039" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="56" y1="1078" x2="494" y2="1078" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="8" data-title="Agent 运行时" data-x="40" data-y="1074" data-w="470" data-h="125">
+<rect x="40" y="1074" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="56" y1="1117" x2="494" y2="1117" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="1068" font-size="17" font-weight="bold" fill="#C2410C">Agent 运行时</tspan>
-<tspan x="56" y="1101">run loop · turn 生命周期</tspan>
-<tspan x="56" y="1120">模型故障转移与重试</tspan>
-<tspan x="56" y="1139">子智能体 spawn / 回收</tspan>
+<tspan x="56" y="1107" font-size="17" font-weight="bold" fill="#C2410C">Agent 运行时</tspan>
+<tspan x="56" y="1140">run loop · turn 生命周期</tspan>
+<tspan x="56" y="1159">模型故障转移与重试</tspan>
+<tspan x="56" y="1178">子智能体 spawn / 回收</tspan>
 </text>
 </g>
-<g class="card" data-i="9" data-title="工具与策略" data-x="530" data-y="1039" data-w="470" data-h="118">
-<rect x="530" y="1039" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="546" y1="1078" x2="984" y2="1078" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="9" data-title="工具与策略" data-x="530" data-y="1074" data-w="470" data-h="125">
+<rect x="530" y="1074" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="546" y1="1117" x2="984" y2="1117" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="1068" font-size="17" font-weight="bold" fill="#C2410C">工具与策略</tspan>
-<tspan x="546" y="1101">tool policy 白名单 / 黑名单</tspan>
-<tspan x="546" y="1120">exec 审批 · sandbox 沙箱</tspan>
-<tspan x="546" y="1139">插件工具 · MCP 客户端</tspan>
+<tspan x="546" y="1107" font-size="17" font-weight="bold" fill="#C2410C">工具与策略</tspan>
+<tspan x="546" y="1140">tool policy 白名单 / 黑名单</tspan>
+<tspan x="546" y="1159">exec 审批 · sandbox 沙箱</tspan>
+<tspan x="546" y="1178">插件工具 · MCP 客户端</tspan>
 </text>
 </g>
-<g class="card" data-i="10" data-title="插件 / MCP / 技能" data-x="40" data-y="1173" data-w="470" data-h="118">
-<rect x="40" y="1173" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="56" y1="1212" x2="494" y2="1212" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="10" data-title="插件 / MCP / 技能" data-x="40" data-y="1215" data-w="470" data-h="125">
+<rect x="40" y="1215" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="56" y1="1258" x2="494" y2="1258" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="1202" font-size="17" font-weight="bold" fill="#C2410C">插件 / MCP / 技能</tspan>
-<tspan x="56" y="1235">插件注册工具、渠道、HTTP 路由</tspan>
-<tspan x="56" y="1254">MCP server 接入外部能力</tspan>
-<tspan x="56" y="1273">技能按需加载 SKILL.md</tspan>
+<tspan x="56" y="1248" font-size="17" font-weight="bold" fill="#C2410C">插件 / MCP / 技能</tspan>
+<tspan x="56" y="1281">插件注册工具、渠道、HTTP 路由</tspan>
+<tspan x="56" y="1300">MCP server 接入外部能力</tspan>
+<tspan x="56" y="1319">技能按需加载 SKILL.md</tspan>
 </text>
 </g>
-<g class="card" data-i="11" data-title="调度器 GatewayScheduler" data-x="530" data-y="1173" data-w="470" data-h="118">
-<rect x="530" y="1173" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="546" y1="1212" x2="984" y2="1212" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="11" data-title="调度器 GatewayScheduler" data-x="530" data-y="1215" data-w="470" data-h="125">
+<rect x="530" y="1215" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="546" y1="1258" x2="984" y2="1258" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="1202" font-size="17" font-weight="bold" fill="#C2410C">调度器 GatewayScheduler</tspan>
-<tspan x="546" y="1235">cron 唤醒 · heartbeat</tspan>
-<tspan x="546" y="1254">automations 定时任务</tspan>
-<tspan x="546" y="1273">睡眠后迟到唤醒只派发一次</tspan>
+<tspan x="546" y="1248" font-size="17" font-weight="bold" fill="#C2410C">调度器 GatewayScheduler</tspan>
+<tspan x="546" y="1281">cron 唤醒 · heartbeat</tspan>
+<tspan x="546" y="1300">automations 定时任务</tspan>
+<tspan x="546" y="1319">睡眠后迟到唤醒只派发一次</tspan>
 </text>
 </g>
-<g class="card" data-i="12" data-title="记忆" data-x="40" data-y="1307" data-w="470" data-h="118">
-<rect x="40" y="1307" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="56" y1="1346" x2="494" y2="1346" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="12" data-title="记忆" data-x="40" data-y="1356" data-w="470" data-h="125">
+<rect x="40" y="1356" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="56" y1="1399" x2="494" y2="1399" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="1336" font-size="17" font-weight="bold" fill="#C2410C">记忆</tspan>
-<tspan x="56" y="1369">MEMORY.md · USER.md</tspan>
-<tspan x="56" y="1388">daily notes · memory search</tspan>
-<tspan x="56" y="1407">wiki 知识库与召回</tspan>
+<tspan x="56" y="1389" font-size="17" font-weight="bold" fill="#C2410C">记忆</tspan>
+<tspan x="56" y="1422">MEMORY.md · USER.md</tspan>
+<tspan x="56" y="1441">daily notes · memory search</tspan>
+<tspan x="56" y="1460">wiki 知识库与召回</tspan>
 </text>
 </g>
-<g class="card" data-i="13" data-title="配置与状态" data-x="530" data-y="1307" data-w="470" data-h="118">
-<rect x="530" y="1307" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
-<line x1="546" y1="1346" x2="984" y2="1346" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="13" data-title="配置与状态" data-x="530" data-y="1356" data-w="470" data-h="125">
+<rect x="530" y="1356" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#FED7AA" stroke-width="1.5"/>
+<line x1="546" y1="1399" x2="984" y2="1399" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="1336" font-size="17" font-weight="bold" fill="#C2410C">配置与状态</tspan>
-<tspan x="546" y="1369">~/.openclaw/openclaw.json</tspan>
-<tspan x="546" y="1388">SQLite 状态（WAL 检查点）</tspan>
-<tspan x="546" y="1407">会话记录与重启恢复</tspan>
+<tspan x="546" y="1389" font-size="17" font-weight="bold" fill="#C2410C">配置与状态</tspan>
+<tspan x="546" y="1422">~/.openclaw/openclaw.json</tspan>
+<tspan x="546" y="1441">SQLite 状态（WAL 检查点）</tspan>
+<tspan x="546" y="1460">会话记录与重启恢复</tspan>
 </text>
 </g>
-<g class="card" data-i="14" data-title="外部服务" data-x="40" data-y="1499" data-w="470" data-h="118">
-<rect x="40" y="1499" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
-<line x1="56" y1="1538" x2="494" y2="1538" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="14" data-title="外部服务" data-x="40" data-y="1555" data-w="470" data-h="125">
+<rect x="40" y="1555" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
+<line x1="56" y1="1598" x2="494" y2="1598" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="56" y="1528" font-size="17" font-weight="bold" fill="#6D28D9">外部服务</tspan>
-<tspan x="56" y="1561">MCP server 提供工具能力</tspan>
-<tspan x="56" y="1580">插件 HTTP 路由与 webhook</tspan>
-<tspan x="56" y="1599">邮件 / 日历等第三方 API</tspan>
+<tspan x="56" y="1588" font-size="17" font-weight="bold" fill="#6D28D9">外部服务</tspan>
+<tspan x="56" y="1621">MCP server 提供工具能力</tspan>
+<tspan x="56" y="1640">插件 HTTP 路由与 webhook</tspan>
+<tspan x="56" y="1659">邮件 / 日历等第三方 API</tspan>
 </text>
 </g>
-<g class="card" data-i="15" data-title="模型提供商" data-x="530" data-y="1499" data-w="470" data-h="118">
-<rect x="530" y="1499" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
-<line x1="546" y1="1538" x2="984" y2="1538" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="15" data-title="模型提供商" data-x="530" data-y="1555" data-w="470" data-h="125">
+<rect x="530" y="1555" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
+<line x1="546" y1="1598" x2="984" y2="1598" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="1528" font-size="17" font-weight="bold" fill="#6D28D9">模型提供商</tspan>
-<tspan x="546" y="1561">OpenAI · Anthropic · DeepSeek</tspan>
-<tspan x="546" y="1580">SiliconFlow · Ollama（本地推理）</tspan>
-<tspan x="546" y="1599">按 agent 配置选择与故障转移</tspan>
+<tspan x="546" y="1588" font-size="17" font-weight="bold" fill="#6D28D9">模型提供商</tspan>
+<tspan x="546" y="1621">OpenAI · Anthropic · DeepSeek</tspan>
+<tspan x="546" y="1640">SiliconFlow · Ollama（本地推理）</tspan>
+<tspan x="546" y="1659">按 agent 配置选择与故障转移</tspan>
 </text>
 </g>
-<g class="card" data-i="16" data-title="节点设备执行" data-x="530" data-y="1633" data-w="470" data-h="118">
-<rect x="530" y="1633" width="470" height="118" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
-<line x1="546" y1="1672" x2="984" y2="1672" stroke="#EEF2F7" stroke-width="1"/>
+<g class="card" data-i="16" data-title="节点设备执行" data-x="530" data-y="1696" data-w="470" data-h="125">
+<rect x="530" y="1696" width="470" height="125" rx="10" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.5"/>
+<line x1="546" y1="1739" x2="984" y2="1739" stroke="#EEF2F7" stroke-width="1"/>
 <text font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" xml:space="preserve">
-<tspan x="546" y="1662" font-size="17" font-weight="bold" fill="#6D28D9">节点设备执行</tspan>
-<tspan x="546" y="1695">摄像头采集 · 屏幕录制</tspan>
-<tspan x="546" y="1714">定位 · canvas 面板渲染</tspan>
-<tspan x="546" y="1733">命令经 node 通道下发并回传</tspan>
+<tspan x="546" y="1729" font-size="17" font-weight="bold" fill="#6D28D9">节点设备执行</tspan>
+<tspan x="546" y="1762">摄像头采集 · 屏幕录制</tspan>
+<tspan x="546" y="1781">定位 · canvas 面板渲染</tspan>
+<tspan x="546" y="1800">命令经 node 通道下发并回传</tspan>
 </text>
 </g>
-<polyline class="arrow" data-name="arr" points="300,314 300,537" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="300,697 300,901" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="510,964 526,964" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="510,1098 526,1098" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="760,1023 760,1031 300,1031 300,1035" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="700,831 700,901" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="510,1119 516,1119 516,1489 760,1489 760,1495" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arr" points="40,1203 32,1203 32,1559 36,1559" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-<polyline class="arrow" data-name="arrB" points="380,541 380,318" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrB)"/>
-<polyline class="arrow" data-name="arrG" points="760,541 760,471" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
-<polyline class="arrow" data-name="arrO" points="870,1023 870,1035" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
-<polyline class="arrow" data-name="arrO" points="1000,1059 1008,1059 1008,398 1004,398" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
-<polyline class="arrow" data-name="arrO" points="1000,1109 1008,1109 1008,1625 760,1625 760,1629" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
+<polyline class="arrow" data-name="arr" points="300,321 300,551" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="300,718 300,929" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="510,995.5 526,995.5" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="510,1136.5 526,1136.5" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="760,1058 760,1066 300,1066 300,1070" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="700,859 700,929" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="510,1154 516,1154 516,1545 760,1545 760,1551" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arr" points="40,1245 32,1245 32,1615 36,1615" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<polyline class="arrow" data-name="arrB" points="380,555 380,325" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrB)"/>
+<polyline class="arrow" data-name="arrG" points="760,555 760,485" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+<polyline class="arrow" data-name="arrO" points="870,1058 870,1070" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
+<polyline class="arrow" data-name="arrO" points="1000,1094 1008,1094 1008,405 1004,405" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
+<polyline class="arrow" data-name="arrO" points="1000,1144 1008,1144 1008,1688 760,1688 760,1692" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
 <text x="392" y="430" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#2563EB" text-anchor="start" paint-order="stroke" stroke="#FFFFFF" stroke-width="4">事件推送 event</text>
 <text x="770" y="516" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start" paint-order="stroke" stroke="#FFFFFF" stroke-width="4">配对审批</text>
-<rect x="24" y="1779" width="992" height="110" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.4"/>
-<text x="44" y="1803" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" font-weight="bold" fill="#334155" text-anchor="start">图例 Legend</text>
-<line x1="44" y1="1825" x2="74" y2="1825" stroke="#475569" stroke-width="2.2" marker-end="url(#arr)"/>
-<text x="82" y="1829" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">请求 / 数据流：渠道 → 内核 → 模型</text>
-<line x1="400" y1="1825" x2="430" y2="1825" stroke="#2563EB" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrB)"/>
-<text x="438" y="1829" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">事件推送：agent / presence</text>
-<line x1="680" y1="1825" x2="710" y2="1825" stroke="#EA580C" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
-<text x="718" y="1829" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">节点通道：命令 / 结果</text>
-<line x1="900" y1="1825" x2="930" y2="1825" stroke="#94A3B8" stroke-width="2.2" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
-<text x="938" y="1829" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">配对审批</text>
-<text x="44" y="1857" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">控制面：WS / HTTP 入口、认证与配对</text>
-<text x="400" y="1857" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">数据面：会话、Agent 运行、模型、设备执行</text>
-<text x="700" y="1857" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">事件按 seq 推送，缺口需重新拉快照</text>
-<text x="32" y="1913" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="13" font-weight="normal" fill="#94A3B8" text-anchor="start">OpenClaw 详细架构图 · 基于 docs/concepts/architecture.md</text>
+<rect x="24" y="1849" width="992" height="110" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.4"/>
+<text x="44" y="1873" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" font-weight="bold" fill="#334155" text-anchor="start">图例 Legend</text>
+<line x1="44" y1="1895" x2="74" y2="1895" stroke="#475569" stroke-width="2.2" marker-end="url(#arr)"/>
+<text x="82" y="1899" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">请求 / 数据流：渠道 → 内核 → 模型</text>
+<line x1="400" y1="1895" x2="430" y2="1895" stroke="#2563EB" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrB)"/>
+<text x="438" y="1899" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">事件推送：agent / presence</text>
+<line x1="680" y1="1895" x2="710" y2="1895" stroke="#EA580C" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrO)"/>
+<text x="718" y="1899" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">节点通道：命令 / 结果</text>
+<line x1="900" y1="1895" x2="930" y2="1895" stroke="#94A3B8" stroke-width="2.2" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+<text x="938" y="1899" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="15" fill="#475569" text-anchor="start">配对审批</text>
+<text x="44" y="1927" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">控制面：WS / HTTP 入口、认证与配对</text>
+<text x="400" y="1927" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">数据面：会话、Agent 运行、模型、设备执行</text>
+<text x="700" y="1927" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="14" fill="#64748B" text-anchor="start">事件按 seq 推送，缺口需重新拉快照</text>
+<text x="32" y="1983" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif" font-size="13" font-weight="normal" fill="#94A3B8" text-anchor="start">OpenClaw 详细架构图 · 基于 docs/concepts/architecture.md</text>
 </svg>
