@@ -1020,3 +1020,18 @@ html body .footer
     margin-top: 2.4rem
     padding-top: 1.6rem
     border-top: 1px solid var(--site-border)
+
+// ============================================================
+// 内容区表格：窄屏可横向滚动，避免列被裁切
+// 说明：display:table 上的 overflow 不生效，必须切成 block 才能出滚动容器；
+// 仅在窄屏切换，桌面端保持原有 table 布局（宽度占满内容区）。
+// ============================================================
+@media (max-width: 1279px)
+  .theme-vdoing-content table,
+  .theme-default-content table,
+  .content__default table
+    display: block
+    width: 100%
+    max-width: 100%
+    overflow-x: auto
+    -webkit-overflow-scrolling: touch
