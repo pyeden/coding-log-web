@@ -64,6 +64,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: 'Dify架构学习笔记', link: '/note/dify/' },
               { text: 'n8n架构学习笔记', link: '/note/n8n-arch/' },
               { text: 'LangGraph学习笔记', link: '/note/langgraph/' },
+              { text: 'LangChain学习笔记', link: '/note/langchain/' },
             ],
           },
           {
