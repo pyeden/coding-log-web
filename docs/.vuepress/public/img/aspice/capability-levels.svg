@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="clArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b98ad"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="560" fill="#ffffff"/>
+  <text x="40" y="42" font-size="24" font-weight="700" fill="#1f2937">能力等级 CL1–CL5 与过程属性（PA）</text>
+  <text x="700" y="66" font-size="13" fill="#7b8794">评级对象是过程属性，不是项目或团队</text>
+
+  <line x1="50" y1="470" x2="930" y2="470" stroke="#9aa8bf" stroke-width="2"/>
+
+  <rect x="60" y="380" width="168" height="90" fill="#d6e4f7" stroke="#7d9dc4" stroke-width="1.5"/>
+  <text x="144" y="408" font-size="22" font-weight="700" text-anchor="middle" fill="#12345a">CL1</text>
+  <text x="144" y="432" font-size="16" text-anchor="middle" fill="#12345a">已实现</text>
+  <text x="144" y="454" font-size="13" text-anchor="middle" fill="#34506e">PA1.1</text>
+
+  <rect x="240" y="330" width="168" height="140" fill="#bcd3ef" stroke="#7d9dc4" stroke-width="1.5"/>
+  <text x="324" y="358" font-size="22" font-weight="700" text-anchor="middle" fill="#12345a">CL2</text>
+  <text x="324" y="382" font-size="16" text-anchor="middle" fill="#12345a">已管理</text>
+  <text x="324" y="406" font-size="13" text-anchor="middle" fill="#34506e">PA2.1 绩效管理</text>
+  <text x="324" y="428" font-size="13" text-anchor="middle" fill="#34506e">PA2.2 工作产品管理</text>
+
+  <rect x="420" y="280" width="168" height="190" fill="#9dc0e6" stroke="#6b93bd" stroke-width="1.5"/>
+  <text x="504" y="308" font-size="22" font-weight="700" text-anchor="middle" fill="#12345a">CL3</text>
+  <text x="504" y="332" font-size="16" text-anchor="middle" fill="#12345a">已建立</text>
+  <text x="504" y="356" font-size="13" text-anchor="middle" fill="#23405c">PA3.1 过程定义</text>
+  <text x="504" y="378" font-size="13" text-anchor="middle" fill="#23405c">PA3.2 过程部署</text>
+
+  <rect x="600" y="230" width="168" height="240" fill="#78a6d6" stroke="#5b86b5" stroke-width="1.5"/>
+  <text x="684" y="258" font-size="22" font-weight="700" text-anchor="middle" fill="#0f2f52">CL4</text>
+  <text x="684" y="282" font-size="16" text-anchor="middle" fill="#0f2f52">可预测</text>
+  <text x="684" y="306" font-size="13" text-anchor="middle" fill="#0f2f52">PA4.1 过程测量</text>
+  <text x="684" y="328" font-size="13" text-anchor="middle" fill="#0f2f52">PA4.2 过程控制</text>
+
+  <rect x="780" y="180" width="168" height="290" fill="#5590c9" stroke="#3f76ad" stroke-width="1.5"/>
+  <text x="864" y="208" font-size="22" font-weight="700" text-anchor="middle" fill="#ffffff">CL5</text>
+  <text x="864" y="232" font-size="16" text-anchor="middle" fill="#ffffff">持续优化</text>
+  <text x="864" y="256" font-size="13" text-anchor="middle" fill="#eaf2fb">PA5.1 过程创新</text>
+  <text x="864" y="278" font-size="13" text-anchor="middle" fill="#eaf2fb">PA5.2 过程优化</text>
+
+  <path d="M70,366 L930,158" fill="none" stroke="#8b98ad" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#clArrow)"/>
+  <text x="474" y="540" font-size="14" text-anchor="middle" fill="#4b5563">等级越高，过程越可预测、越可复用；主机厂通常要求 CL2，关键软件要求 CL3</text>
+  <text x="60" y="498" font-size="14" fill="#6b7280">CL0 不完整（Incomplete）：过程未执行，或未达成过程目的 —— 没有评级就不是 CL1</text>
+  <text x="60" y="520" font-size="12" fill="#7b8794">每个 PA 按 N / P / L / F 评分，达成等级要求该等级及以下所有 PA 均为 F</text>
+</svg>

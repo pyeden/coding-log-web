@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="asArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a78c2"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="520" fill="#ffffff"/>
+  <text x="40" y="42" font-size="24" font-weight="700" fill="#1f2937">ASPICE 评估与持续改进闭环</text>
+
+  <rect x="60" y="88" width="240" height="58" rx="8" fill="#eef4ff" stroke="#4a78c2" stroke-width="1.6"/>
+  <text x="180" y="114" font-size="16" font-weight="600" text-anchor="middle" fill="#16365c">1 准备</text>
+  <text x="180" y="134" font-size="12" text-anchor="middle" fill="#3d5a80">定范围、选过程、组评估组</text>
+
+  <rect x="360" y="88" width="240" height="58" rx="8" fill="#eef4ff" stroke="#4a78c2" stroke-width="1.6"/>
+  <text x="480" y="114" font-size="16" font-weight="600" text-anchor="middle" fill="#16365c">2 就绪检查</text>
+  <text x="480" y="134" font-size="12" text-anchor="middle" fill="#3d5a80">文档齐套、证据自查</text>
+
+  <rect x="660" y="88" width="240" height="58" rx="8" fill="#eef4ff" stroke="#4a78c2" stroke-width="1.6"/>
+  <text x="780" y="114" font-size="16" font-weight="600" text-anchor="middle" fill="#16365c">3 现场评估</text>
+  <text x="780" y="134" font-size="12" text-anchor="middle" fill="#3d5a80">访谈、抽样、文档评审</text>
+
+  <rect x="660" y="214" width="240" height="58" rx="8" fill="#e8f0fe" stroke="#4a78c2" stroke-width="1.6"/>
+  <text x="780" y="240" font-size="16" font-weight="600" text-anchor="middle" fill="#16365c">4 评级</text>
+  <text x="780" y="260" font-size="12" text-anchor="middle" fill="#3d5a80">N / P / L / F 与 CL 判定</text>
+
+  <rect x="620" y="382" width="240" height="58" rx="8" fill="#fff5e6" stroke="#c98a1b" stroke-width="1.6"/>
+  <text x="740" y="408" font-size="16" font-weight="600" text-anchor="middle" fill="#6b4400">5 差距分析</text>
+  <text x="740" y="428" font-size="12" text-anchor="middle" fill="#6b4400">弱项、缺失证据、根因</text>
+
+  <rect x="340" y="382" width="240" height="58" rx="8" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="460" y="408" font-size="16" font-weight="600" text-anchor="middle" fill="#14532d">6 改进</text>
+  <text x="460" y="428" font-size="12" text-anchor="middle" fill="#14532d">模板、流程、工具链、培训</text>
+
+  <rect x="60" y="382" width="240" height="58" rx="8" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="180" y="408" font-size="16" font-weight="600" text-anchor="middle" fill="#14532d">7 复评</text>
+  <text x="180" y="428" font-size="12" text-anchor="middle" fill="#14532d">验证改进有效性</text>
+
+  <line x1="300" y1="117" x2="354" y2="117" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="600" y1="117" x2="654" y2="117" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="780" y1="146" x2="780" y2="208" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="740" y1="272" x2="740" y2="376" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="620" y1="411" x2="586" y2="411" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="340" y1="411" x2="306" y2="411" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+  <line x1="180" y1="382" x2="180" y2="152" stroke="#4a78c2" stroke-width="2" marker-end="url(#asArrow)"/>
+
+  <rect x="330" y="220" width="300" height="86" rx="10" fill="#f8fafc" stroke="#d5dde8" stroke-width="1.4"/>
+  <text x="480" y="248" font-size="14" text-anchor="middle" fill="#1f2937">一次评估通常 2–5 人日</text>
+  <text x="480" y="272" font-size="14" text-anchor="middle" fill="#1f2937">评级只对抽样到的证据负责</text>
+  <text x="480" y="294" font-size="12" text-anchor="middle" fill="#7b8794">评估结论 = 评估组的一致判断</text>
+
+  <text x="40" y="492" font-size="13" fill="#6b7280">改进周期一般 3–6 个月；复评聚焦上次差距项与新增过程，不必全量重跑。</text>
+</svg>

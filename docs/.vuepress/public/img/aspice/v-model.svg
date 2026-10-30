@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="960" height="620" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="vmEnd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b6fb6"/>
+    </marker>
+    <marker id="vmStart" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M10,0 L0,5 L10,10 z" fill="#3b6fb6"/>
+    </marker>
+    <marker id="vmFlow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7a90"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="620" fill="#ffffff"/>
+  <text x="40" y="40" font-size="24" font-weight="700" fill="#1f2937">软件 V 模型：左侧分解、底部单元验证、右侧集成与确认</text>
+
+  <text x="200" y="66" font-size="13" text-anchor="middle" fill="#5b6b82">需求与设计（分解）</text>
+  <text x="760" y="66" font-size="13" text-anchor="middle" fill="#5b6b82">集成与验证（确认）</text>
+
+  <!-- 左侧 -->
+  <rect x="80" y="80" width="240" height="46" rx="6" fill="#e8f0fe" stroke="#3b6fb6" stroke-width="1.6"/>
+  <text x="200" y="109" font-size="15" text-anchor="middle" fill="#16365c">SYS.1 系统需求获取</text>
+  <rect x="80" y="146" width="240" height="46" rx="6" fill="#e8f0fe" stroke="#3b6fb6" stroke-width="1.6"/>
+  <text x="200" y="175" font-size="15" text-anchor="middle" fill="#16365c">SYS.2 系统需求分析</text>
+  <rect x="80" y="212" width="240" height="46" rx="6" fill="#e8f0fe" stroke="#3b6fb6" stroke-width="1.6"/>
+  <text x="200" y="241" font-size="15" text-anchor="middle" fill="#16365c">SYS.3 系统架构设计</text>
+  <rect x="80" y="290" width="240" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="200" y="319" font-size="15" text-anchor="middle" fill="#14532d">SWE.1 软件需求分析</text>
+  <rect x="80" y="356" width="240" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="200" y="385" font-size="15" text-anchor="middle" fill="#14532d">SWE.2 软件架构设计</text>
+  <rect x="80" y="422" width="240" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="200" y="451" font-size="15" text-anchor="middle" fill="#14532d">SWE.3 详细设计与单元构建</text>
+
+  <!-- 右侧 -->
+  <rect x="640" y="80" width="240" height="46" rx="6" fill="#e8f0fe" stroke="#3b6fb6" stroke-width="1.6"/>
+  <text x="760" y="109" font-size="15" text-anchor="middle" fill="#16365c">SYS.5 系统合格性测试</text>
+  <rect x="640" y="146" width="240" height="60" rx="6" fill="#e8f0fe" stroke="#3b6fb6" stroke-width="1.6"/>
+  <text x="760" y="172" font-size="15" text-anchor="middle" fill="#16365c">SYS.4 系统集成与</text>
+  <text x="760" y="192" font-size="15" text-anchor="middle" fill="#16365c">集成测试</text>
+  <rect x="640" y="290" width="240" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="760" y="319" font-size="15" text-anchor="middle" fill="#14532d">SWE.6 软件合格性测试</text>
+  <rect x="640" y="356" width="240" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="760" y="385" font-size="15" text-anchor="middle" fill="#14532d">SWE.5 软件集成与集成测试</text>
+
+  <!-- 底部 -->
+  <rect x="370" y="500" width="220" height="46" rx="6" fill="#e9f7ef" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="480" y="529" font-size="15" text-anchor="middle" fill="#14532d">SWE.4 软件单元验证</text>
+
+  <!-- 设计流程箭头 -->
+  <line x1="200" y1="126" x2="200" y2="142" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="200" y1="192" x2="200" y2="208" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="200" y1="258" x2="200" y2="286" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="200" y1="336" x2="200" y2="352" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="200" y1="402" x2="200" y2="418" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="220" y1="468" x2="380" y2="512" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="590" y1="512" x2="742" y2="406" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="760" y1="356" x2="760" y2="340" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="760" y1="290" x2="760" y2="210" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+  <line x1="760" y1="146" x2="760" y2="130" stroke="#6b7a90" stroke-width="1.8" marker-end="url(#vmFlow)"/>
+
+  <!-- 追溯虚线 -->
+  <line x1="320" y1="103" x2="640" y2="103" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <line x1="320" y1="169" x2="640" y2="176" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <line x1="320" y1="235" x2="640" y2="196" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <line x1="320" y1="313" x2="640" y2="313" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <line x1="320" y1="379" x2="640" y2="379" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <line x1="300" y1="468" x2="430" y2="496" stroke="#3b6fb6" stroke-width="1.6" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+
+  <text x="480" y="566" font-size="13" text-anchor="middle" fill="#5b6b82">单元验证覆盖 SWE.3 的详细设计；集成测试覆盖 SWE.2 的接口；合格性测试覆盖 SWE.1 的需求</text>
+
+  <line x1="40" y1="588" x2="100" y2="588" stroke="#6b7a90" stroke-width="2" marker-end="url(#vmFlow)"/>
+  <text x="110" y="593" font-size="13" fill="#374151">工作产品流</text>
+  <line x1="250" y1="588" x2="310" y2="588" stroke="#3b6fb6" stroke-width="1.8" stroke-dasharray="6 5" marker-start="url(#vmStart)" marker-end="url(#vmEnd)"/>
+  <text x="320" y="593" font-size="13" fill="#374151">双向追溯 / 验证关系</text>
+  <text x="620" y="593" font-size="12" fill="#7b8794">SYS.4 同时确认 SYS.2 与 SYS.3</text>
+</svg>
