@@ -312,7 +312,7 @@ const mountArtalk = (path, attempt = 0) => {
     el: '#artalk-comments',
     server: window.location.origin,
     site: ARTALK_SITE,
-    darkMode: artalkMode(),
+    darkMode: artalkMode() === 'dark',
   })
   artalkMountedPath = path
   setTimeout(syncCommentButton, 300)
@@ -322,7 +322,7 @@ const mountArtalk = (path, attempt = 0) => {
 const watchArtalkTheme = () => {
   const obs = new MutationObserver(() => {
     if (artalkInstance && typeof artalkInstance.setDarkMode === 'function') {
-      artalkInstance.setDarkMode(artalkMode())
+      artalkInstance.setDarkMode(artalkMode() === 'dark')
     }
   })
   obs.observe(document.body, { attributes: true, attributeFilter: ['class'] })
