@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ title }}</title>
+    <meta name="generator" content="VuePress {{ version }}">
+    {{{ userHeadTags }}}
+    {{{ pageMeta }}}
+    {{{ canonicalLink }}}
+    {{{ renderResourceHints() }}}
+    {{{ renderStyles() }}}
+  </head>
+  <body class="theme-mode-light">
+    <!--
+      FOUC fix: resolve and apply the theme mode synchronously before first paint.
+      - Mirrors vuepress-theme-vdoing Layout.vue beforeMount logic.
+      - Reads localStorage 'mode' (good-storage stores JSON, e.g. "dark"); falls back to raw string.
+      - def must match themeConfig.defaultMode in docs/.vuepress/config.ts (currently 'dark').
+      - theme-style-card must match themeConfig.pageStyle (default 'card').
+      - body class theme-mode-light stays as the no-JS fallback.
+    -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('mode')
+          var mode = raw
+          try { mode = JSON.parse(raw) } catch (e) {}
+          var def = 'dark'
+          var resolved
+          if (def && def !== 'auto' && !mode) {
+            resolved = def
+          } else if (!mode || mode === 'auto' || def === 'auto') {
+            resolved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          } else {
+            resolved = mode
+          }
+          if (resolved !== 'light' && resolved !== 'dark' && resolved !== 'read') resolved = 'dark'
+          document.body.className = 'theme-mode-' + resolved + ' theme-style-card'
+        } catch (e) {
+          document.body.className = 'theme-mode-dark theme-style-card'
+        }
+      })()
+    </script>
+    <!--vue-ssr-outlet-->
+    {{{ renderScripts() }}}
+  </body>
+</html>

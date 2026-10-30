@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title></title>
+  </head>
+  <body class="theme-mode-light">
+    <!--
+      FOUC fix: same as ssr.html, apply theme mode before first paint in dev.
+      def matches themeConfig.defaultMode ('dark'); theme-style-card matches pageStyle default 'card'.
+    -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('mode')
+          var mode = raw
+          try { mode = JSON.parse(raw) } catch (e) {}
+          var def = 'dark'
+          var resolved
+          if (def && def !== 'auto' && !mode) {
+            resolved = def
+          } else if (!mode || mode === 'auto' || def === 'auto') {
+            resolved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          } else {
+            resolved = mode
+          }
+          if (resolved !== 'light' && resolved !== 'dark' && resolved !== 'read') resolved = 'dark'
+          document.body.className = 'theme-mode-' + resolved + ' theme-style-card'
+        } catch (e) {
+          document.body.className = 'theme-mode-dark theme-style-card'
+        }
+      })()
+    </script>
+    <div id="app"></div>
+  </body>
+</html>
