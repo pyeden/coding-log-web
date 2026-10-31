@@ -51,7 +51,15 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     // 导航配置
     nav: [
       { text: '首页', link: '/' },
-      { text: '项目', link: '/projects/' },
+      {
+        text: '项目',
+        link: '/projects/',
+        items: [
+          { text: '项目总览', link: '/projects/' },
+          { text: '智能旅行助手', link: '/projects/travel/' },
+          { text: 'PanguVerse', link: 'https://seres-ai.com/panguverse/', target: '_blank' },
+        ],
+      },
       {
         text: 'AI技术',
         link: '/ai/', // 目录页；点击一级导航进入 AI技术 目录
