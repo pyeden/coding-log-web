@@ -57,6 +57,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
         items: [
           { text: '项目总览', link: '/projects/' },
           { text: '智能旅行助手', link: '/projects/travel/' },
+          { text: '简历维护助手', link: '/projects/resume/' },
           { text: 'PanguVerse', link: 'https://seres-ai.com/panguverse/', target: '_blank' },
         ],
       },
@@ -438,6 +439,11 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
     proxy: {
       '/api/travel': {
         target: 'http://127.0.0.1:8090',
+        changeOrigin: true,
+      },
+      // 简历维护助手（FastAPI，生产由 nginx 转发；须放在通用 '/api' 之前）
+      '/api/resume': {
+        target: 'http://127.0.0.1:8092',
         changeOrigin: true,
       },
       // Artalk 评论后端（nginx 未加 /api 反代时也能先跑通）

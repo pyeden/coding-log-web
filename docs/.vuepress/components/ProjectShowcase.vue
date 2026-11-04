@@ -6,7 +6,7 @@
         <h1>把想法做成<br /><span>可运行的项目</span></h1>
         <p class="ps-lead">这里是三木的实验场：智能体、旅行规划、内容系统，以及正在路上的新想法。</p>
         <div class="ps-stats">
-          <div><b>02</b><span>在线项目</span></div>
+          <div><b>03</b><span>在线项目</span></div>
           <div><b>16</b><span>AI 技术章节</span></div>
           <div><b>100%</b><span>自建部署</span></div>
         </div>
@@ -24,6 +24,19 @@
           <p>输入目的地、日期与偏好，自动生成逐日行程、预算明细和实用提示。前端 Vue，后端 FastAPI，已接入线上 API。</p>
           <div class="ps-tags"><span>FastAPI</span><span>Vue</span><span>Agent</span></div>
           <div class="ps-card-foot"><span>3 天行程 · 预算估算 · 实时 API</span><b>进入项目 <em>→</em></b></div>
+        </a>
+
+        <a class="ps-card ps-card-featured ps-card-resume" href="/projects/resume/" @mousemove="onMove">
+          <div class="ps-card-head">
+            <span class="ps-icon ps-icon-violet" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7.2L19 8.3V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3.8V8.5h4.6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12.4h6M9 15.6h4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </span>
+            <span class="ps-status ps-live"><i></i>LIVE</span>
+          </div>
+          <h2>简历维护助手</h2>
+          <p>从知识库与博客内容自动汇总的公开简历：只写有出处的事实，知识库没有的栏目明确标注「知识库未收录」，每月自动重建。</p>
+          <div class="ps-tags"><span>Knowledge Base</span><span>FastAPI</span><span>Vue</span></div>
+          <div class="ps-card-foot"><span>自动生成 · 每月 1 号重建</span><b>进入项目 <em>→</em></b></div>
         </a>
 
         <a class="ps-card" href="/ai/" @mousemove="onMove">
@@ -171,6 +184,17 @@ export default {
   background: rgba(34, 211, 238, .16); filter: blur(46px);
   pointer-events: none;
 }
+.ps-card-resume {
+  border-color: rgba(139, 92, 246, .24);
+  background-image: linear-gradient(135deg, rgba(139, 92, 246, .1), rgba(34, 211, 238, .04) 65%, transparent);
+}
+.ps-card-resume::after {
+  content: ''; position: absolute; right: -60px; bottom: -70px;
+  width: 190px; height: 190px; border-radius: 50%;
+  background: rgba(139, 92, 246, .16); filter: blur(48px);
+  pointer-events: none;
+}
+.ps-card-resume:hover { border-color: rgba(139, 92, 246, .45); }
 .ps-card-soon { grid-column: 1 / -1; border-style: dashed; opacity: .8; }
 
 .ps-card-head {
