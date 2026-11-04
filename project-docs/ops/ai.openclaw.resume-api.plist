@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>ai.openclaw.resume-api</string>
+  <key>UserName</key><string>mac</string>
+  <key>GroupName</key><string>staff</string>
+  <key>WorkingDirectory</key><string>/Users/mac/coding-log-web/backend</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>/Users/mac</string>
+    <key>PATH</key><string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>RESUME_KB_DIR</key><string>/Users/mac/resume-kb</string>
+    <key>BLOG_DOCS_DIR</key><string>/Users/mac/coding-log-web/docs</string>
+    <key>RESUME_DATA_DIR</key><string>/Users/mac/coding-log-web/backend/resume_assistant/data</string>
+    <key>RESUME_TOKEN_FILE</key><string>/Users/mac/resume-kb/.refresh_token</string>
+  </dict>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/mac/coding-log-web/backend &amp;&amp; exec resume_assistant/.venv/bin/python -m uvicorn resume_assistant.app:app --host 127.0.0.1 --port 8092</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>5</integer>
+  <key>StandardOutPath</key><string>/Users/mac/coding-log-web/backend/resume_assistant/server.log</string>
+  <key>StandardErrorPath</key><string>/Users/mac/coding-log-web/backend/resume_assistant/server.log</string>
+</dict>
+</plist>

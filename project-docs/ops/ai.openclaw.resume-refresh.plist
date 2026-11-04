@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>ai.openclaw.resume-refresh</string>
+  <key>UserName</key><string>mac</string>
+  <key>GroupName</key><string>staff</string>
+  <key>WorkingDirectory</key><string>/Users/mac/coding-log-web</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>/Users/mac</string>
+    <key>PATH</key><string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>RESUME_TOKEN_FILE</key><string>/Users/mac/resume-kb/.refresh_token</string>
+  </dict>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/mac/coding-log-web/scripts/refresh_resume.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Day</key><integer>1</integer>
+    <key>Hour</key><integer>3</integer>
+    <key>Minute</key><integer>10</integer>
+  </dict>
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/Users/mac/coding-log-web/backend/resume_assistant/refresh.log</string>
+  <key>StandardErrorPath</key><string>/Users/mac/coding-log-web/backend/resume_assistant/refresh.log</string>
+</dict>
+</plist>
