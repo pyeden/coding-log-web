@@ -1,4 +1,4 @@
-"""Response models for the public resume document (schema 1.0)."""
+"""Response models for the public resume document (schema 1.1)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 class Link(BaseModel):
@@ -25,6 +25,9 @@ class Profile(BaseModel):
 class SkillGroup(BaseModel):
     group: str
     items: List[str] = Field(default_factory=list)
+    # Aligned with ``items``; 0 means "no score available" (chips fallback).
+    # Defaults to [] so snapshots written before schema 1.1 still validate.
+    levels: List[int] = Field(default_factory=list)
 
 
 class Project(BaseModel):

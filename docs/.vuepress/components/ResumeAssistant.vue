@@ -105,8 +105,23 @@
         <div class="ra-skills">
           <article v-for="group in skillGroups" :key="group.group" class="ra-skill">
             <h4>{{ group.group }}</h4>
-            <ul>
-              <li v-for="item in group.items" :key="item">{{ item }}</li>
+            <!-- 有分值：名称 + 水平柱 + 分值；无分值：保持旧 chips -->
+            <ul v-if="group.useBars" class="ra-skill-bars">
+              <li v-for="(item, i) in group.items" :key="item.name + '-' + i" class="ra-skill-row">
+                <span class="ra-skill-name" :title="item.name">{{ item.name }}</span>
+                <span
+                  class="ra-skill-track"
+                  role="progressbar"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  :aria-valuenow="item.level"
+                  :aria-label="item.name + ' ' + item.level + ' 分'"
+                ><i :style="{ width: item.level + '%' }" aria-hidden="true"></i></span>
+                <span class="ra-skill-value" aria-hidden="true">{{ item.level }}</span>
+              </li>
+            </ul>
+            <ul v-else class="ra-skill-chips">
+              <li v-for="(item, i) in group.items" :key="item.name + '-' + i">{{ item.name }}</li>
             </ul>
           </article>
         </div>
@@ -247,7 +262,19 @@ export default {
       if (!Array.isArray(list)) return []
       return list
         .filter(group => group && group.group && Array.isArray(group.items) && group.items.length)
-        .map(group => ({ group: group.group, items: group.items.filter(Boolean) }))
+        .map(group => {
+          // levels 与 items 按下标对齐；旧快照没有 levels 时全部按 0 处理
+          const levels = Array.isArray(group.levels) ? group.levels : []
+          const items = group.items
+            .map((name, i) => ({ name, level: this.normalizeLevel(levels[i]) }))
+            .filter(item => Boolean(item.name))
+          return {
+            group: group.group,
+            items,
+            useBars: items.some(item => item.level > 0),
+          }
+        })
+        .filter(group => group.items.length)
     },
     projects() {
       const list = this.doc && this.doc.projects
@@ -310,6 +337,11 @@ export default {
     this.load()
   },
   methods: {
+    normalizeLevel(value) {
+      const num = Number(value)
+      if (!Number.isFinite(num) || num <= 0) return 0
+      return Math.min(100, Math.round(num))
+    },
     async load(options) {
       const silent = Boolean(options && options.silent)
       if (!silent) {
@@ -666,6 +698,7 @@ export default {
   gap: .75rem;
 }
 .ra-skill {
+  min-width: 0;
   padding: .85rem .95rem;
   border: 1px solid var(--ra-border); border-radius: 12px;
   background-color: var(--ra-card);
@@ -675,11 +708,38 @@ export default {
   font-size: .8rem; font-weight: 600; letter-spacing: .02em;
   color: var(--site-text, #f8fafc);
 }
-.ra-skill ul { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
-.ra-skill li {
+/* 旧快照（无 levels）回退为 chips */
+.ra-skill-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.ra-skill-chips li {
   padding: .1rem .42rem; border-radius: 6px;
   font-size: .72rem; color: var(--ra-muted);
   background-color: rgba(120, 160, 200, .1);
+}
+/* 有分值：名称 → 轨道 → 分值 */
+.ra-skill-bars {
+  display: flex; flex-direction: column; gap: .5rem;
+  margin: 0; padding: 0; list-style: none;
+}
+.ra-skill-row { display: flex; align-items: center; gap: .55rem; min-width: 0; margin: 0; }
+.ra-skill-name {
+  flex: 0 1 auto; min-width: 0; max-width: 42%;
+  font-size: .72rem; line-height: 1.5; color: var(--ra-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ra-skill-track {
+  flex: 1 1 0; min-width: 24px; height: 6px; border-radius: 999px;
+  background-color: rgba(120, 160, 200, .16);
+  overflow: hidden;
+}
+.ra-skill-track i {
+  display: block; height: 100%; border-radius: inherit;
+  background-image: linear-gradient(90deg, rgba(34, 211, 238, .75), rgba(139, 92, 246, .75));
+  transition: width 600ms cubic-bezier(.22, .61, .36, 1);
+}
+.ra-skill-value {
+  flex: none; width: 2.2rem; text-align: right;
+  font-size: .7rem; color: var(--ra-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- 项目 ---------- */
@@ -828,5 +888,6 @@ export default {
 }
 @media (prefers-reduced-motion: reduce) {
   .ra-spinner { animation-duration: 2.4s; }
+  .ra-skill-track i { transition: none; }
 }
 </style>

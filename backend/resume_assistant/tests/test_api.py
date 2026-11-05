@@ -27,7 +27,7 @@ def test_latest_generates_and_sets_no_store(client) -> None:
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-store"
     payload = response.json()
-    assert payload["schema_version"] == "1.0"
+    assert payload["schema_version"] == "1.1"
     assert payload["profile"]["name"] == "三木先生"
     assert payload["experience"] == []
     assert payload["education"] == []

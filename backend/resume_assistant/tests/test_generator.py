@@ -21,7 +21,7 @@ def test_schema_and_missing_sections(workspace: Path) -> None:
     document = build_document(make_settings(workspace))
     payload = document.model_dump()
 
-    assert payload["schema_version"] == "1.0"
+    assert payload["schema_version"] == "1.1"
     assert payload["profile"]["name"] == "三木先生"
     assert "软件工程" in payload["profile"]["directions"]
     assert len(payload["skills"]) >= 2

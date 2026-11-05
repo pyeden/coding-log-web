@@ -175,6 +175,43 @@ def _parse_inline_list(value: str) -> List[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 
 
+_LEVEL_RE = re.compile(r"^\d{1,3}$")
+
+
+def _parse_skill_line(value: str) -> Tuple[str, int]:
+    """Split ``名称 | 分值`` into a name and a 0-100 level.
+
+    The right side must be a plain integer 0-100; otherwise the whole line is
+    treated as the name and the level is 0 (the line is still a valid skill).
+    ``rsplit`` is used so names may contain other ``|`` characters.
+    """
+    name, separator, raw_level = value.rpartition("|")
+    if not separator:
+        return value.strip(), 0
+    level_text = raw_level.strip()
+    if not _LEVEL_RE.match(level_text):
+        return value.strip(), 0
+    level = int(level_text)
+    if level > 100:
+        return value.strip(), 0
+    return name.strip(), level
+
+
+def _align_levels(items: List[str], levels: List[int]) -> List[int]:
+    aligned = [max(0, min(int(level), 100)) for level in levels[: len(items)]]
+    aligned.extend([0] * (len(items) - len(aligned)))
+    return aligned
+
+
+def _normalize_skill_group(group: SkillGroup) -> SkillGroup:
+    """Keep ``levels`` exactly as long as ``items`` (missing scores become 0)."""
+    return SkillGroup(
+        group=group.group,
+        items=list(group.items),
+        levels=_align_levels(group.items, group.levels),
+    )
+
+
 def parse_skills(text: Optional[str]) -> List[SkillGroup]:
     groups: List[SkillGroup] = []
     if not text:
@@ -184,13 +221,14 @@ def parse_skills(text: Optional[str]) -> List[SkillGroup]:
         line = raw.rstrip()
         stripped = line.strip()
         if stripped.startswith("## "):
-            current = SkillGroup(group=stripped[3:].strip(), items=[])
+            current = SkillGroup(group=stripped[3:].strip(), items=[], levels=[])
             groups.append(current)
             continue
         if current is not None and stripped.startswith("- "):
-            item = stripped[2:].strip()
-            if item:
-                current.items.append(item)
+            name, level = _parse_skill_line(stripped[2:].strip())
+            if name:
+                current.items.append(name)
+                current.levels.append(level)
     return [group for group in groups if group.group]
 
 
@@ -483,7 +521,7 @@ def build_document(settings: Settings, generated_at: Optional[str] = None) -> Re
         directions=list(profile_data["directions"]),
     )
 
-    skills = parse_skills(texts["skills.md"])
+    skills = [_normalize_skill_group(group) for group in parse_skills(texts["skills.md"])]
     kb_projects = parse_entries(texts["projects.md"])
     projects = merge_doc_projects(kb_projects, settings.blog_docs_dir)
     experience = parse_entries(texts["experience.md"])

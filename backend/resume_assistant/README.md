@@ -9,7 +9,7 @@
 backend/resume_assistant/
 ├── app.py          # FastAPI 应用与刷新/鉴权/限流
 ├── generator.py    # 确定性生成、解析、哈希、原子写
-├── models.py       # ResumeDocument schema 1.0
+├── models.py       # ResumeDocument schema 1.1
 ├── requirements.txt
 ├── tests/
 └── data/resume.json  # 运行时快照（已 gitignore）
@@ -43,10 +43,26 @@ CORS 允许 `https://seres-ai.com`、`http://127.0.0.1:8080`、`http://localhost
 
 - 读取 `profile.md`、`skills.md`、`projects.md`，以及可选的 `experience.md`、`education.md`、`honors.md`。
 - `profile.md` 只取 `name` / `title` / `summary` / `github` / `site` / `directions`；不会输出邮箱、手机号等字段。
+- `skills.md` 每个 `## 分组` 下的 `- 条目` 可带分值：`- Python | 95`。分隔符为半角 `|`，按最后一个 `|` 切分（名称本身可含其他 `|`）；右侧仅当匹配 `^\d{1,3}$` 且 `0 <= n <= 100` 时作为分值，否则整行作为名称、分值记 `0`。名称与分值均去除首尾空白。
+- 技能输出为 `{"group": "编程语言", "items": ["Python", "Go"], "levels": [95, 80]}`：`items` 保持字符串数组（兼容旧前端），`levels` 与 `items` 等长，无分值补 `0`。
 - 博客扫描 `docs/**/*.md`：frontmatter 含 `permalink` 计为一篇文章；`categories` 取前 12 个系列。
 - `docs/08.项目/*.md` 中未在知识库出现的项目只补 `title` + `permalink`，摘要等留空。
 - `source_hash` 覆盖所有 KB 文件内容（含缺失标记）与排序后的 permalink 列表；相同输入除 `generated_at` 外输出完全一致。
 - 快照通过临时文件 + `os.replace` 原子写入 `data/resume.json`。
+
+## 技能分值格式
+
+```md
+## 编程语言
+- Python | 95
+- Go | 80
+- TypeScript / JavaScript | 75
+- 无分值条目
+```
+
+- 分值范围 0–100 的整数；`0` 表示无分值，前端对整组无正分值时回退为 chips。
+- 非法分值（如 `101`、`abc`、空值）不会报错：整行按技能名称处理，分值 `0`。
+- 名称允许包含括号、斜杠等符号，例如 `- MySQL（含 Binlog 双向同步）| 88`。
 
 ## 本地运行
 
@@ -73,7 +89,8 @@ resume_assistant/.venv/bin/python -m pytest resume_assistant/tests -q
 ```
 
 覆盖：schema 与缺文件 `missing`、确定性 `source_hash`、token 401/200、30 秒 429、
-KB 追加技能反映到 latest、失败保留上一版、token 文件、CORS、隐私字段过滤。
+KB 追加技能反映到 latest、失败保留上一版、token 文件、CORS、隐私字段过滤、
+技能分值解析（带分值 / 无分值 / 非法分值）、`levels` 与 `items` 等长、无 `levels` 旧快照兼容。
 
 ## 部署说明
 
