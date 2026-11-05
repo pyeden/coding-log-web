@@ -35,6 +35,7 @@
             type="password"
             autocomplete="new-password"
             spellcheck="false"
+            aria-label="刷新令牌"
             placeholder="RESUME_REFRESH_TOKEN"
             @input="persistToken"
           />
@@ -720,14 +721,23 @@ export default {
   display: flex; flex-direction: column; gap: .5rem;
   margin: 0; padding: 0; list-style: none;
 }
-.ra-skill-row { display: flex; align-items: center; gap: .55rem; min-width: 0; margin: 0; }
+.ra-skill-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.2rem;
+  grid-template-areas: "name value" "track track";
+  align-items: start;
+  column-gap: .55rem;
+  row-gap: .35rem;
+  min-width: 0; margin: 0;
+}
 .ra-skill-name {
-  flex: 0 1 auto; min-width: 0; max-width: 42%;
+  grid-area: name; min-width: 0;
   font-size: .72rem; line-height: 1.5; color: var(--ra-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 .ra-skill-track {
-  flex: 1 1 0; min-width: 24px; height: 6px; border-radius: 999px;
+  grid-area: track;
+  width: 100%; height: 6px; border-radius: 999px;
   background-color: rgba(120, 160, 200, .16);
   overflow: hidden;
 }
@@ -737,8 +747,9 @@ export default {
   transition: width 600ms cubic-bezier(.22, .61, .36, 1);
 }
 .ra-skill-value {
-  flex: none; width: 2.2rem; text-align: right;
-  font-size: .7rem; color: var(--ra-muted);
+  grid-area: value; justify-self: end;
+  width: 2.2rem; text-align: right;
+  font-size: .7rem; line-height: 1.5; color: var(--ra-muted);
   font-variant-numeric: tabular-nums;
 }
 
