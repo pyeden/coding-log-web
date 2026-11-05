@@ -111,6 +111,8 @@ const TILT_SELECTOR = '.home-wrapper .banner .feature, .theme-container .card-bo
 const TILT_MAX = 6
 // 宽卡片按宽度收敛角度时保留一个下限，否则大卡片几乎看不出倾斜
 const TILT_MIN = 4.5
+// 悬停到卡片中心时也保留基础倾角；否则 --rx 归零会覆盖 CSS 的静态 3D，看起来像失效
+const TILT_BASE = 2
 const TILT_RESET_DELAY = 90
 const TILT_FLAG = '__cardTiltInstalled__'
 const TILT_MQ = '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
@@ -228,7 +230,7 @@ function installCardTilt () {
     // 大卡按宽度收敛角度，但保留下限，避免宽卡片几乎看不出效果
     const w = el.offsetWidth || r.width
     const maxDeg = Math.max(TILT_MIN, Math.min(TILT_MAX, (TILT_MAX * 360) / w))
-    st.rx = (0.5 - py) * maxDeg * 2
+    st.rx = Math.max(-8, Math.min(8, TILT_BASE + (0.5 - py) * maxDeg * 2))
     st.ry = (px - 0.5) * maxDeg * 2
     st.mx = px * 100
     st.my = py * 100
