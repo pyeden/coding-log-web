@@ -105,85 +105,162 @@ function installButtonFix () {
 }
 
 
-// 首页卡片：指针跟随 3D 倾斜（仅 hover: hover + 精细指针 + 非 reduced-motion）
+// 全站卡片：指针跟随 3D 倾斜（事件委托，只安装一次）
+// 仅 hover: hover + 精细指针 + 非 reduced-motion 时生效
 const TILT_SELECTOR = '.home-wrapper .banner .feature, .theme-container .card-box, .theme-container .post, .theme-container .column-wrapper, .ps-card'
 const TILT_MAX = 6
+// 宽卡片按宽度收敛角度时保留一个下限，否则大卡片几乎看不出倾斜
+const TILT_MIN = 4.5
+const TILT_RESET_DELAY = 90
+const TILT_FLAG = '__cardTiltInstalled__'
+const TILT_MQ = '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
 
-const tiltAllowed = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
-  !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+let tiltMql = null
 
-function bindFeatureTilt () {
-  if (!tiltAllowed()) return 0
-  let bound = 0
-  document.querySelectorAll(TILT_SELECTOR).forEach(el => {
-    if (el.__tiltBound) return
-    // 微信二维码卡片不参与 3D 倾斜，避免影响扫码与右栏宽度
-    if (el.id === 'home-wechat-card') return
-    // 分页按钮也带 card-box 类，但不是卡片，跳过
-    if (el.closest && el.closest('.pagination')) return
-    el.__tiltBound = true
-    bound++
-    let raf = 0
-    let rx = 0
-    let ry = 0
-    let mx = 50
-    let my = 50
-    let leaveTimer = 0
-    const apply = () => {
-      raf = 0
-      el.style.setProperty('--rx', rx.toFixed(2) + 'deg')
-      el.style.setProperty('--ry', ry.toFixed(2) + 'deg')
-      el.style.setProperty('--mx', mx.toFixed(1) + '%')
-      el.style.setProperty('--my', my.toFixed(1) + '%')
-    }
-    const reset = () => {
-      if (raf) {
-        cancelAnimationFrame(raf)
-        raf = 0
-      }
-      rx = 0
-      ry = 0
-      // 移除内联变量，回落到 CSS 里的静态 3D 角度
-      el.style.removeProperty('--rx')
-      el.style.removeProperty('--ry')
-      el.style.removeProperty('--mx')
-      el.style.removeProperty('--my')
-    }
-    el.addEventListener('pointerenter', () => {
-      clearTimeout(leaveTimer)
-      el.classList.add('is-tilting')
-    })
-    el.addEventListener('pointermove', e => {
-      clearTimeout(leaveTimer)
-      const r = el.getBoundingClientRect()
-      const px = (e.clientX - r.left) / r.width
-      const py = (e.clientY - r.top) / r.height
-      // 大卡按宽度收敛角度，避免倾斜后指针被"甩出"卡片导致反复重置
-      const w = el.offsetWidth || r.width
-      const maxDeg = Math.min(TILT_MAX, Math.max(2.5, (TILT_MAX * 360) / w))
-      rx = (0.5 - py) * maxDeg * 2
-      ry = (px - 0.5) * maxDeg * 2
-      mx = px * 100
-      my = py * 100
-      if (!raf) raf = requestAnimationFrame(apply)
-    })
-    el.addEventListener('pointerleave', () => {
-      // 卡片旋转后指针可能瞬间落到盒外，延迟复位避免"卡在一个角度"
-      clearTimeout(leaveTimer)
-      leaveTimer = setTimeout(() => {
-        el.classList.remove('is-tilting')
-        reset()
-      }, 90)
-    })
-    window.addEventListener('scroll', reset, { passive: true })
-  })
-  return bound
+const getTiltMql = () => {
+  if (tiltMql || typeof window === 'undefined' || typeof window.matchMedia !== 'function') return tiltMql
+  tiltMql = window.matchMedia(TILT_MQ)
+  return tiltMql
 }
 
-function scheduleTiltBinding () {
-  [200, 600, 1200].forEach(delay => setTimeout(bindFeatureTilt, delay))
+const tiltAllowed = () => {
+  const mql = getTiltMql()
+  return !!mql && mql.matches
+}
+
+// 从事件目标向上找卡片；微信二维码卡与分页按钮不参与
+const resolveTiltCard = target => {
+  if (!target || target.nodeType !== 1) return null
+  const el = target.closest(TILT_SELECTOR)
+  if (!el) return null
+  if (el.id === 'home-wechat-card') return null
+  if (el.closest('.pagination')) return null
+  return el
+}
+
+function installCardTilt () {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  if (window[TILT_FLAG]) return
+  window[TILT_FLAG] = true
+
+  const states = new WeakMap()
+  const active = new Set()
+
+  const getState = el => {
+    let st = states.get(el)
+    if (!st) {
+      st = { raf: 0, timer: 0, rx: 0, ry: 0, mx: 50, my: 50 }
+      states.set(el, st)
+    }
+    return st
+  }
+
+  const paint = el => {
+    const st = states.get(el)
+    if (!st) return
+    st.raf = 0
+    el.style.setProperty('--rx', st.rx.toFixed(2) + 'deg')
+    el.style.setProperty('--ry', st.ry.toFixed(2) + 'deg')
+    el.style.setProperty('--mx', st.mx.toFixed(1) + '%')
+    el.style.setProperty('--my', st.my.toFixed(1) + '%')
+  }
+
+  const resetCard = el => {
+    const st = states.get(el)
+    if (st) {
+      clearTimeout(st.timer)
+      st.timer = 0
+      if (st.raf) {
+        cancelAnimationFrame(st.raf)
+        st.raf = 0
+      }
+      st.rx = 0
+      st.ry = 0
+      st.mx = 50
+      st.my = 50
+    }
+    el.classList.remove('is-tilting')
+    // 移除内联变量，回落到 CSS 里的静态 3D 角度
+    el.style.removeProperty('--rx')
+    el.style.removeProperty('--ry')
+    el.style.removeProperty('--mx')
+    el.style.removeProperty('--my')
+    active.delete(el)
+  }
+
+  // 滚动后指针与卡片的相对位置已变，统一复位；
+  // 用捕获阶段监听，才能收到 .theme-container（局部滚动容器）的 scroll
+  const resetAll = () => {
+    Array.from(active).forEach(el => {
+      if (!el.isConnected) {
+        active.delete(el)
+        return
+      }
+      resetCard(el)
+    })
+  }
+
+  document.addEventListener('pointerover', e => {
+    if (!tiltAllowed()) return
+    const el = resolveTiltCard(e.target)
+    if (!el) return
+    const st = getState(el)
+    clearTimeout(st.timer)
+    st.timer = 0
+    el.classList.add('is-tilting')
+    active.add(el)
+  }, { passive: true })
+
+  document.addEventListener('pointermove', e => {
+    if (!tiltAllowed()) return
+    const el = resolveTiltCard(e.target)
+    if (!el) return
+    const st = getState(el)
+    clearTimeout(st.timer)
+    st.timer = 0
+    el.classList.add('is-tilting')
+    active.add(el)
+
+    const r = el.getBoundingClientRect()
+    if (!r.width || !r.height) return
+    const px = (e.clientX - r.left) / r.width
+    const py = (e.clientY - r.top) / r.height
+    // 大卡按宽度收敛角度，但保留下限，避免宽卡片几乎看不出效果
+    const w = el.offsetWidth || r.width
+    const maxDeg = Math.max(TILT_MIN, Math.min(TILT_MAX, (TILT_MAX * 360) / w))
+    st.rx = (0.5 - py) * maxDeg * 2
+    st.ry = (px - 0.5) * maxDeg * 2
+    st.mx = px * 100
+    st.my = py * 100
+    if (!st.raf) st.raf = requestAnimationFrame(() => paint(el))
+  }, { passive: true })
+
+  document.addEventListener('pointerout', e => {
+    const el = resolveTiltCard(e.target)
+    if (!el) return
+    // 在卡片内部子元素之间移动不算离开
+    const to = e.relatedTarget
+    if (to && el.contains(to)) return
+    const st = getState(el)
+    clearTimeout(st.timer)
+    // 卡片旋转后指针可能瞬间落到盒外，延迟复位避免"卡在一个角度"
+    st.timer = setTimeout(() => {
+      st.timer = 0
+      resetCard(el)
+    }, TILT_RESET_DELAY)
+  }, { passive: true })
+
+  document.addEventListener('scroll', resetAll, { capture: true, passive: true })
+
+  // 媒体条件变化（例如外接鼠标/关闭动画）时立即复位
+  const mql = getTiltMql()
+  if (mql) {
+    const onChange = () => {
+      if (!mql.matches) resetAll()
+    }
+    if (mql.addEventListener) mql.addEventListener('change', onChange)
+    else if (mql.addListener) mql.addListener(onChange)
+  }
 }
 
 
@@ -364,16 +441,14 @@ export default ({ router }) => {
   window.addEventListener('load', scheduleWechatCard)
   router.afterEach(() => scheduleWechatCard())
   installCommentGuard(router)
-  scheduleTiltBinding()
+  installCardTilt()
   watchArtalkTheme()
   mountArtalk(router.currentRoute.path)
   setTimeout(() => mountArtalk(router.currentRoute.path), 800)
   window.addEventListener('load', () => mountArtalk(router.currentRoute.path))
-  window.addEventListener('load', scheduleTiltBinding)
   router.afterEach(to => {
     setTimeout(syncCommentButton, 600)
     setTimeout(syncCommentButton, 2000)
-    scheduleTiltBinding()
     mountArtalk(to.path)
     setTimeout(() => mountArtalk(to.path), 700)
   })

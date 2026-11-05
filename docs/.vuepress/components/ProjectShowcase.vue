@@ -13,7 +13,7 @@
       </header>
 
       <div class="ps-cards">
-        <a class="ps-card ps-card-featured" href="/projects/travel/" @mousemove="onMove">
+        <a class="ps-card ps-card-featured" href="/projects/travel/">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-cyan" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 11.5 21 4l-7.5 18-2.7-7.3L3 11.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m10.8 14.7 3.7-3.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -26,7 +26,7 @@
           <div class="ps-card-foot"><span>3 天行程 · 预算估算 · 实时 API</span><b>进入项目 <em>→</em></b></div>
         </a>
 
-        <a class="ps-card ps-card-featured ps-card-resume" href="/projects/resume/" @mousemove="onMove">
+        <a class="ps-card ps-card-featured ps-card-resume" href="/projects/resume/">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-violet" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7.2L19 8.3V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3.8V8.5h4.6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12.4h6M9 15.6h4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -39,7 +39,7 @@
           <div class="ps-card-foot"><span>自动生成 · 每月 1 号重建</span><b>进入项目 <em>→</em></b></div>
         </a>
 
-        <a class="ps-card" href="/ai/" @mousemove="onMove">
+        <a class="ps-card" href="/ai/">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-violet" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5h6.5A2.5 2.5 0 0 1 14 7v13H7.5A2.5 2.5 0 0 1 5 17.5v-13Z" stroke="currentColor" stroke-width="1.6"/><path d="M19 4.5h-5A2.5 2.5 0 0 0 11.5 7v13H17a2.5 2.5 0 0 0 2-2.5v-13Z" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h2.5M8 12h2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -52,7 +52,7 @@
           <div class="ps-card-foot"><span>16 章 · 持续更新</span><b>开始阅读 <em>→</em></b></div>
         </a>
 
-        <a class="ps-card" href="/archives/" @mousemove="onMove">
+        <a class="ps-card" href="/archives/">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-lime" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="m8 9 2.5 2L8 13M13 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -65,7 +65,7 @@
           <div class="ps-card-foot"><span>252 篇文章 · 持续迭代</span><b>浏览归档 <em>→</em></b></div>
         </a>
 
-        <div class="ps-card ps-card-soon" @mousemove="onMove">
+        <div class="ps-card ps-card-soon">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-pink" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
@@ -86,14 +86,8 @@
 <script>
 export default {
   name: 'ProjectShowcase',
-  methods: {
-    onMove(event) {
-      const el = event.currentTarget
-      const rect = el.getBoundingClientRect()
-      el.style.setProperty('--mx', `${event.clientX - rect.left}px`)
-      el.style.setProperty('--my', `${event.clientY - rect.top}px`)
-    },
-  },
+  // 指针跟随（--mx/--my/--rx/--ry）由 enhanceApp.js 里的全局事件委托统一处理，
+  // 组件内不再写 px，避免和 3D 倾斜的百分比变量互相覆盖。
 }
 </script>
 
@@ -165,7 +159,9 @@ export default {
   border: 1px solid var(--site-border);
   border-radius: 14px;
   box-shadow: 0 12px 32px var(--site-shadow);
-  color: inherit; text-decoration: none; overflow: hidden;
+  color: inherit; text-decoration: none;
+  /* overflow: hidden 会扁平化 preserve-3d，卡内 translateZ 视差失效 */
+  overflow: visible;
   transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .ps-card:hover {
@@ -178,20 +174,18 @@ export default {
   background-image: linear-gradient(135deg, rgba(34, 211, 238, .09), rgba(139, 92, 246, .05) 60%, transparent);
   border-color: rgba(34, 211, 238, .22);
 }
-.ps-card-featured::after {
-  content: ''; position: absolute; right: -60px; top: -60px;
-  width: 180px; height: 180px; border-radius: 50%;
-  background: rgba(34, 211, 238, .16); filter: blur(46px);
+.ps-card-featured::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background-image: radial-gradient(220px circle at 88% 0%, rgba(34, 211, 238, .16), transparent 70%);
   pointer-events: none;
 }
 .ps-card-resume {
   border-color: rgba(139, 92, 246, .24);
   background-image: linear-gradient(135deg, rgba(139, 92, 246, .1), rgba(34, 211, 238, .04) 65%, transparent);
 }
-.ps-card-resume::after {
-  content: ''; position: absolute; right: -60px; bottom: -70px;
-  width: 190px; height: 190px; border-radius: 50%;
-  background: rgba(139, 92, 246, .16); filter: blur(48px);
+.ps-card-resume::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background-image: radial-gradient(240px circle at 92% 100%, rgba(139, 92, 246, .16), transparent 70%);
   pointer-events: none;
 }
 .ps-card-resume:hover { border-color: rgba(139, 92, 246, .45); }
