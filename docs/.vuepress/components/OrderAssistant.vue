@@ -4,13 +4,13 @@
       <p class="oa-kicker"><i></i>ORDER LAB / MARKET PRICING</p>
       <h2>提交需求，按市场价自动报价</h2>
       <p class="oa-lead">
-        填清范围与交付物，系统按市场人日价自动给出区间价、建议价和分阶段明细；
-        需求每变更一轮，就按最新范围重新报价，并给出与上一轮的差异。
+        提交需求后，AI 先把需求拆成可验收的功能模块，再按每个模块的人日与市场价核算；
+        范围每变一轮，就重新拆解、重新报价。
       </p>
       <ol class="oa-steps">
         <li><b>01</b><span>提交需求</span></li>
-        <li><b>02</b><span>自动报价</span></li>
-        <li><b>03</b><span>多轮改价</span></li>
+        <li><b>02</b><span>AI 拆模块</span></li>
+        <li><b>03</b><span>按模块计价</span></li>
       </ol>
     </header>
 
@@ -18,7 +18,7 @@
       <section class="oa-card">
         <div class="oa-head">
           <h3>{{ editingId ? '修改需求' : '新增需求' }}</h3>
-          <span>提交后自动生成报价</span>
+          <span>{{ editingId ? '保存后不自动重报价' : 'AI 拆 4–12 个模块后计价' }}</span>
         </div>
         <form @submit.prevent="save">
           <div class="oa-fields">
@@ -59,7 +59,7 @@
           <p v-if="feedback" class="oa-feedback" :class="'is-' + feedback.type" role="status">{{ feedback.text }}</p>
           <div class="oa-actions">
             <button class="oa-btn primary" type="submit" :disabled="submitting">
-              {{ submitting ? '提交中…' : (editingId ? '保存修改' : '提交需求并报价') }}
+              {{ submitting ? (editingId ? '保存中…' : 'AI 拆解报价中…') : (editingId ? '保存修改' : '提交需求并生成报价') }}
             </button>
             <button v-if="editingId" class="oa-btn" type="button" @click="resetForm">取消修改</button>
           </div>
@@ -71,7 +71,7 @@
           <h3>我的需求</h3>
           <span>{{ myList.length }} 条</span>
         </div>
-        <p v-if="!myList.length" class="oa-empty">本机还没有记录。提交后会保存在当前浏览器，不上传通讯录。</p>
+        <p v-if="!myList.length" class="oa-empty">本机还没有记录。提交后会保存在当前浏览器；报价由 AI 拆解模块后生成，不公开他人信息。</p>
         <ul class="oa-list">
           <li v-for="it in myList" :key="it.public_id">
             <button type="button" :class="{ on: active && active.public_id === it.public_id }" @click="openDetail(it.public_id)">
@@ -116,11 +116,11 @@
         </div>
         <div class="oa-basis">
           <p>{{ q.market_basis }}</p>
-          <p class="oa-sub">报价版本 {{ q.pricing_version }} · {{ fmtDate(q.generated_at) }} · 第 {{ q.round_no }} 轮</p>
+          <p class="oa-sub">报价版本 {{ q.pricing_version }} · {{ q.decomposition_source === 'llm' ? 'AI 拆解' : '规则拆解' }} · {{ q.module_count }} 个模块 · {{ fmtDate(q.generated_at) }} · 第 {{ q.round_no }} 轮</p>
         </div>
         <div class="oa-table-wrap">
           <table>
-            <thead><tr><th>阶段</th><th>人日</th><th>人日价</th><th>金额</th></tr></thead>
+            <thead><tr><th>模块 / 阶段</th><th>人日</th><th>人日价</th><th>金额</th></tr></thead>
             <tbody>
               <tr v-for="(b, i) in q.breakdown" :key="i">
                 <td>{{ b.phase }}</td><td>{{ b.days }}</td><td>{{ money(b.unit_price) }}</td><td>{{ money(b.amount) }}</td>
@@ -173,11 +173,28 @@
             </label>
           </div>
           <button class="oa-btn primary" type="submit" :disabled="roundSubmitting">
-            {{ roundSubmitting ? '重新报价中…' : '提交新一轮并重新报价' }}
+            {{ roundSubmitting ? 'AI 重新拆解中…' : '提交新一轮并重新报价' }}
           </button>
         </form>
       </div>
     </section>
+
+    <div v-if="busy.active" class="oa-loading" role="status" aria-live="polite">
+      <div class="oa-loading-card">
+        <span class="oa-spinner" aria-hidden="true"></span>
+        <p class="oa-loading-kicker">AI QUOTING / MARKET PRICING</p>
+        <h3>{{ busy.kind === 'round' ? '正在重新拆解本轮需求' : '正在拆解需求并生成报价' }}</h3>
+        <p class="oa-loading-stage">{{ busy.stage }}</p>
+        <div class="oa-loading-bar" aria-hidden="true"><i></i></div>
+        <p class="oa-loading-hint">已用 {{ busy.elapsed }} 秒 · 通常 10–30 秒，请不要关闭页面</p>
+        <ul class="oa-loading-steps">
+          <li :class="{ done: busy.elapsed >= 3, on: busy.elapsed < 3 }">理解需求与交付范围</li>
+          <li :class="{ done: busy.elapsed >= 8, on: busy.elapsed >= 3 && busy.elapsed < 8 }">拆解功能模块与人日</li>
+          <li :class="{ done: busy.elapsed >= 16, on: busy.elapsed >= 8 && busy.elapsed < 16 }">按模块人日 × 市场价核算</li>
+          <li :class="{ on: busy.elapsed >= 16 }">校验明细并生成报价</li>
+        </ul>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -203,6 +220,8 @@ export default {
       draft: '',
       roundDraft: '',
       roundForm: this.blankRound(),
+      busy: { active: false, kind: 'create', elapsed: 0, stage: '', started: 0 },
+      busyTimer: null,
       timer: null
     }
   },
@@ -220,6 +239,7 @@ export default {
   },
   beforeDestroy() {
     if (this.timer) clearTimeout(this.timer)
+    if (this.busyTimer) clearInterval(this.busyTimer)
   },
   methods: {
     blankForm() {
@@ -309,6 +329,32 @@ export default {
         this.writeIds(this.ids)
       } catch (e) { /* 网络失败保留旧列表 */ }
     },
+    stageFor(seconds) {
+      if (seconds < 3) return '正在理解需求与交付范围…'
+      if (seconds < 8) return '正在拆解功能模块并估算人日…'
+      if (seconds < 16) return '正在按模块人日 × 市场价核算…'
+      return '模块较多，正在校验明细并生成报价…'
+    },
+    startBusy(kind) {
+      this.busy.active = true
+      this.busy.kind = kind
+      this.busy.elapsed = 0
+      this.busy.stage = this.stageFor(0)
+      this.busy.started = Date.now()
+      if (this.busyTimer) clearInterval(this.busyTimer)
+      this.busyTimer = setInterval(() => {
+        const seconds = Math.floor((Date.now() - this.busy.started) / 1000)
+        this.busy.elapsed = seconds
+        this.busy.stage = this.stageFor(seconds)
+      }, 500)
+    },
+    stopBusy() {
+      this.busy.active = false
+      if (this.busyTimer) {
+        clearInterval(this.busyTimer)
+        this.busyTimer = null
+      }
+    },
     validateForm() {
       if (!this.form.title || this.form.title.length < 2) return '项目名称至少 2 个字'
       if (!this.form.description || this.form.description.length < 10) return '需求描述至少 10 个字'
@@ -331,6 +377,8 @@ export default {
         notes: this.form.notes
       }
       this.submitting = true
+      const willQuote = !this.editingId
+      if (willQuote) this.startBusy('create')
       try {
         let data
         if (this.editingId) {
@@ -352,6 +400,7 @@ export default {
         this.note('error', this.errText(e))
       } finally {
         this.submitting = false
+        if (willQuote) this.stopBusy()
       }
     },
     async openDetail(publicId) {
@@ -420,6 +469,7 @@ export default {
       const d = Number(this.roundForm.deadline_days)
       if (!d || d < 1 || d > 365) { this.note('error', '工期需在 1–365 天之间'); return }
       this.roundSubmitting = true
+      this.startBusy('round')
       try {
         const data = await this.api('/requirements/' + this.active.public_id + '/rounds', {
           method: 'POST',
@@ -439,6 +489,7 @@ export default {
         this.note('error', this.errText(e))
       } finally {
         this.roundSubmitting = false
+        this.stopBusy()
       }
     },
     async setStatus(target) {
@@ -566,6 +617,26 @@ export default {
 .oa-tags { display: flex; flex-wrap: wrap; gap: .3rem; }
 .oa-tags span { padding: .12rem .45rem; border: 1px solid var(--oa-line); border-radius: 999px; font-size: .68rem; color: var(--site-muted, #8ea3b8); }
 .oa-round-form form { display: flex; flex-direction: column; gap: .7rem; }
+
+/* 全屏 AI 报价 loading */
+.oa-loading { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(3, 8, 16, .72); backdrop-filter: blur(6px); }
+.oa-loading-card { width: min(430px, 100%); padding: 1.5rem 1.4rem 1.35rem; border: 1px solid rgba(34, 211, 238, .38); border-radius: 18px; background: var(--site-card, #0d1829); box-shadow: 0 24px 70px rgba(0, 0, 0, .45); }
+.oa-spinner { display: block; width: 34px; height: 34px; margin-bottom: 1rem; border-radius: 50%; border: 3px solid rgba(34, 211, 238, .2); border-top-color: #22d3ee; animation: oa-spin .8s linear infinite; }
+.oa-loading-kicker { margin: 0 0 .45rem; font-size: .64rem; font-weight: 600; letter-spacing: .16em; color: var(--site-accent-text, #67e8f9); }
+.oa-loading-card h3 { margin: 0 0 .35rem; font-size: 1.05rem; color: var(--site-text, #f8fafc); }
+.oa-loading-stage { margin: 0; font-size: .84rem; color: var(--site-text, #dbe7f3); }
+.oa-loading-bar { height: 4px; margin: .9rem 0 .55rem; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.oa-loading-bar i { display: block; width: 40%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #22d3ee, #8b5cf6); animation: oa-slide 1.25s ease-in-out infinite; }
+.oa-loading-hint { margin: 0; font-size: .72rem; color: var(--site-muted, #8ea3b8); }
+.oa-loading-steps { list-style: none; margin: .9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .34rem; font-size: .76rem; color: var(--site-muted, #8ea3b8); }
+.oa-loading-steps li::before { content: "○"; display: inline-block; width: 1rem; margin-right: .35rem; color: rgba(142, 163, 184, .6); }
+.oa-loading-steps li.done { color: var(--site-text, #dbe7f3); }
+.oa-loading-steps li.done::before { content: "✓"; color: #86efac; }
+.oa-loading-steps li.on { color: var(--site-accent-text, #67e8f9); }
+.oa-loading-steps li.on::before { content: "●"; color: #22d3ee; }
+@keyframes oa-spin { to { transform: rotate(360deg); } }
+@keyframes oa-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+@media (prefers-reduced-motion: reduce) { .oa-spinner, .oa-loading-bar i { animation-duration: 2.4s; } }
 @media (max-width: 900px) { .oa-grid { grid-template-columns: minmax(0, 1fr); } .oa-quote { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .oa-hero h2 { font-size: 1.65rem; } .oa-fields { grid-template-columns: minmax(0, 1fr); } .oa-field.oa-wide { grid-column: auto; } .oa-card { padding: .9rem; } .oa-price b { font-size: 1.7rem; } }
 </style>
