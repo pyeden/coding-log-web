@@ -6,7 +6,7 @@
         <h1>把想法做成<br /><span>可运行的项目</span></h1>
         <p class="ps-lead">这里是三木的实验场：智能体、旅行规划、内容系统，以及正在路上的新想法。</p>
         <div class="ps-stats">
-          <div><b>03</b><span>在线项目</span></div>
+          <div><b>04</b><span>在线项目</span></div>
           <div><b>16</b><span>AI 技术章节</span></div>
           <div><b>100%</b><span>自建部署</span></div>
         </div>
@@ -37,6 +37,19 @@
           <p>从知识库与博客内容自动汇总的公开简历：只写有出处的事实，知识库没有的栏目明确标注「知识库未收录」，每月自动重建。</p>
           <div class="ps-tags"><span>Knowledge Base</span><span>FastAPI</span><span>Vue</span></div>
           <div class="ps-card-foot"><span>自动生成 · 每月 1 号重建</span><b>进入项目 <em>→</em></b></div>
+        </a>
+
+        <a class="ps-card" href="https://seres-ai.com/djangovueblog/" target="_blank" rel="noopener">
+          <div class="ps-card-head">
+            <span class="ps-icon ps-icon-lime" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M6 4.5h9.5A2.5 2.5 0 0 1 18 7v12.5H8.5A2.5 2.5 0 0 1 6 17V4.5Z" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 11.5h6M9 15h3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </span>
+            <span class="ps-status ps-live"><i></i>LIVE</span>
+          </div>
+          <h2>Django + Vue 个人博客</h2>
+          <p>从零实现的个人博客：文章、Markdown、评论、通知、点赞与子路径部署。Django 4.2 + DRF 负责内容与权限，Vue 3 负责阅读与写作。</p>
+          <div class="ps-tags"><span>Django</span><span>DRF</span><span>Vue 3</span></div>
+          <div class="ps-card-foot"><span>15 章构建教程 · 子路径上线</span><b>进入项目 <em>→</em></b></div>
         </a>
 
         <a class="ps-card" href="/ai/">

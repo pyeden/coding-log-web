@@ -175,6 +175,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
           { text: 'GitHub技巧', link: '/pages/4c778760be26d8b3/' },
           { text: 'Nodejs', link: '/pages/117708e0af7f0bd9/' },
           { text: '博客搭建', link: '/pages/41f87d890d0a02af/' },
+          { text: '开发实战教程', link: '/note/django-vue-blog/' },
         ],
       },
       {
