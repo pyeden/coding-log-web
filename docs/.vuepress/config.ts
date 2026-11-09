@@ -157,6 +157,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: '动力总成与三电', link: '/note/powertrain/' },
               { text: '热管理', link: '/note/thermal/' },
               { text: '整车安全与法规', link: '/note/vehicle-safety/' },
+              { text: '汽车安全标准ISO26262', link: '/note/iso26262/' },
               { text: '汽车软件与AUTOSAR', link: '/note/autosar/' },
               { text: 'ASPICE软件开发流程', link: '/note/aspice/' },
               { text: '智能座舱', link: '/note/cockpit/' },
