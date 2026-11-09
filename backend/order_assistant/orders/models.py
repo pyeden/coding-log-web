@@ -89,6 +89,15 @@ class RequirementRound(models.Model):
     deliverables = models.JSONField("本轮交付物", default=list, blank=True)
     deadline_days = models.PositiveIntegerField("期望工期（天）")
     change_note = models.CharField("本轮变更说明", max_length=300, blank=True)
+    modules = models.JSONField("功能模块拆解", default=list, blank=True)
+    decomposition_source = models.CharField(
+        "拆解来源",
+        max_length=12,
+        choices=[("llm", "LLM 拆解"), ("fallback", "规则拆解")],
+        default="fallback",
+    )
+    decomposition_model = models.CharField("拆解模型", max_length=80, blank=True, default="")
+    decomposition_summary = models.TextField("拆解摘要", blank=True, default="")
     submitted_at = models.DateTimeField("提交时间", default=timezone.now)
 
     class Meta:
@@ -121,6 +130,11 @@ class Quote(models.Model):
     market_basis = models.TextField("市场依据")
     breakdown = models.JSONField("分阶段明细", default=list, blank=True)
     assumptions = models.JSONField("报价假设", default=list, blank=True)
+    decomposition_source = models.CharField("拆解来源", max_length=12, default="fallback")
+    decomposition_model = models.CharField("拆解模型", max_length=80, blank=True, default="")
+    module_count = models.PositiveIntegerField("模块数", default=0)
+    llm_latency_ms = models.PositiveIntegerField("LLM 耗时（毫秒）", default=0)
+    llm_raw = models.JSONField("LLM 原始返回", default=dict, blank=True)
     status = models.CharField("报价状态", max_length=12, choices=STATUS_CHOICES, default="auto")
     adjusted_amount = models.PositiveIntegerField("人工调整价（元）", null=True, blank=True)
     adjust_reason = models.CharField("调整原因", max_length=300, blank=True)

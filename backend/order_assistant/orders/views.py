@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from . import llm
 from .models import PriceBook, Quote, Requirement, RequirementRound
 from .pricing import (
     CURRENCY,
@@ -14,7 +15,8 @@ from .pricing import (
     PRICING_VERSION,
     catalog_map,
     compare_quotes,
-    estimate,
+    fallback_modules,
+    price_modules,
 )
 
 
@@ -155,19 +157,70 @@ def _quote_number():
 
 
 def _create_quote(req, round_obj, catalog):
-    est = estimate(
+    decomposition = llm.decompose(
         title=req.title,
         description=round_obj.description,
         deliverables=round_obj.deliverables,
         deadline_days=round_obj.deadline_days,
-        budget_expectation=req.budget_expectation,
-        contact=req.contact,
         category=req.category if req.category != "other" else None,
-        catalog=catalog,
+        categories=list(catalog.keys()),
     )
+    if decomposition.get("ok"):
+        modules = decomposition.get("modules") or []
+        source = "llm"
+        model_name = decomposition.get("model") or ""
+        summary = decomposition.get("summary") or ""
+        confidence_hint = decomposition.get("confidence")
+        extra_assumptions = decomposition.get("assumptions") or []
+        latency_ms = int(decomposition.get("latency_ms") or 0)
+        raw = decomposition.get("raw") or {}
+    else:
+        fallback = fallback_modules(
+            title=req.title,
+            description=round_obj.description,
+            deliverables=round_obj.deliverables,
+            category=req.category if req.category != "other" else None,
+            catalog=catalog,
+        )
+        modules = fallback["modules"]
+        source = "fallback"
+        model_name = ""
+        summary = fallback["summary"]
+        confidence_hint = fallback["confidence"]
+        extra_assumptions = fallback["assumptions"]
+        latency_ms = 0
+        raw = {
+            "error": decomposition.get("error"),
+            "detail": decomposition.get("detail"),
+            "model": decomposition.get("model"),
+        }
+
+    est = price_modules(
+        modules=modules,
+        catalog=catalog,
+        category=req.category if req.category != "other" else None,
+        contact=req.contact,
+        deadline_days=round_obj.deadline_days,
+        budget_expectation=req.budget_expectation,
+        decomposition_source=source,
+        decomposition_model=model_name,
+        decomposition_summary=summary,
+        confidence_hint=confidence_hint,
+        extra_assumptions=extra_assumptions,
+    )
+
+    round_obj.modules = est.modules
+    round_obj.decomposition_source = source
+    round_obj.decomposition_model = model_name
+    round_obj.decomposition_summary = summary
+    round_obj.save(update_fields=[
+        "modules", "decomposition_source", "decomposition_model", "decomposition_summary"
+    ])
+
     if req.category == "other" and est.category != "other":
         req.category = est.category
         req.save(update_fields=["category", "updated_at"])
+
     return Quote.objects.create(
         round=round_obj,
         quote_no=_quote_number(),
@@ -180,6 +233,11 @@ def _create_quote(req, round_obj, catalog):
         market_basis=est.market_basis,
         breakdown=est.breakdown,
         assumptions=est.assumptions,
+        decomposition_source=source,
+        decomposition_model=model_name,
+        module_count=est.module_count,
+        llm_latency_ms=latency_ms,
+        llm_raw=raw,
         generated_at=timezone.now(),
     )
 
@@ -203,6 +261,20 @@ def _quote_dict(quote):
         "market_basis": quote.market_basis,
         "breakdown": quote.breakdown,
         "assumptions": quote.assumptions,
+        "decomposition_source": quote.decomposition_source,
+        "decomposition_model": quote.decomposition_model,
+        "module_count": quote.module_count,
+        "llm_latency_ms": quote.llm_latency_ms,
+        "modules": [
+            {
+                "name": row.get("name") or row.get("phase"),
+                "days": row.get("days"),
+                "category": row.get("category"),
+                "category_label": row.get("category_label"),
+            }
+            for row in (quote.breakdown or [])
+            if row.get("kind") == "module"
+        ],
         "status": quote.status,
         "adjusted_amount": quote.adjusted_amount,
         "adjust_reason": quote.adjust_reason,
@@ -216,6 +288,11 @@ def _quote_dict(quote):
 
 
 def _complexity_of(round_obj):
+    modules = round_obj.modules or []
+    if modules:
+        values = [float(item.get("complexity", 1)) for item in modules if isinstance(item, dict)]
+        if values:
+            return round(sum(values) / len(values), 2)
     from .pricing import complexity_score
 
     value, _ = complexity_score(round_obj.description, round_obj.deliverables)
@@ -230,6 +307,10 @@ def _round_dict(round_obj):
         "deliverables": round_obj.deliverables,
         "deadline_days": round_obj.deadline_days,
         "change_note": round_obj.change_note,
+        "modules": round_obj.modules or [],
+        "decomposition_source": round_obj.decomposition_source,
+        "decomposition_model": round_obj.decomposition_model,
+        "decomposition_summary": round_obj.decomposition_summary,
         "submitted_at": round_obj.submitted_at.isoformat(),
         "quote": _quote_dict(quote),
     }

@@ -73,10 +73,22 @@ class RequirementAdmin(admin.ModelAdmin):
 
 @admin.register(RequirementRound)
 class RequirementRoundAdmin(admin.ModelAdmin):
-    list_display = ("requirement", "round_no", "deadline_days", "change_note", "submitted_at")
-    list_filter = ("round_no",)
+    list_display = (
+        "requirement",
+        "round_no",
+        "decomposition_source",
+        "module_count_display",
+        "deadline_days",
+        "change_note",
+        "submitted_at",
+    )
+    list_filter = ("round_no", "decomposition_source")
     search_fields = ("requirement__title", "requirement__public_id", "change_note")
-    readonly_fields = ("submitted_at",)
+    readonly_fields = ("submitted_at", "modules", "decomposition_summary")
+
+    @admin.display(description="模块数")
+    def module_count_display(self, obj):
+        return len(obj.modules or [])
 
 
 @admin.register(Quote)
@@ -89,9 +101,11 @@ class QuoteAdmin(admin.ModelAdmin):
         "range_display",
         "confidence",
         "status",
+        "decomposition_source",
+        "module_count",
         "generated_at",
     )
-    list_filter = ("status", "pricing_version")
+    list_filter = ("status", "pricing_version", "decomposition_source")
     search_fields = ("quote_no", "round__requirement__title", "round__requirement__public_id")
     readonly_fields = (
         "quote_no",
@@ -105,6 +119,10 @@ class QuoteAdmin(admin.ModelAdmin):
         "market_basis",
         "breakdown",
         "assumptions",
+        "decomposition_source",
+        "decomposition_model",
+        "module_count",
+        "llm_latency_ms",
         "generated_at",
     )
     fieldsets = (
@@ -120,6 +138,10 @@ class QuoteAdmin(admin.ModelAdmin):
                     "suggested_price",
                     "confidence",
                     "pricing_version",
+                    "decomposition_source",
+                    "decomposition_model",
+                    "module_count",
+                    "llm_latency_ms",
                     "generated_at",
                 )
             },

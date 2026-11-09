@@ -1,11 +1,32 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import Quote, Requirement, RequirementRound
-from .pricing import estimate
+from .pricing import catalog_map, estimate, price_modules
+
+
+def llm_result(modules, confidence=0.82):
+    return {
+        "ok": True,
+        "modules": modules,
+        "summary": "测试用 LLM 拆解",
+        "confidence": confidence,
+        "assumptions": ["测试假设"],
+        "model": "test-model",
+        "latency_ms": 120,
+        "raw": {"content": "{}"},
+    }
+
+
+BASE_MODULES = [
+    {"name": "前端页面", "description": "页面与交互", "category": "frontend", "days": 4, "complexity": 1.0},
+    {"name": "管理后台", "description": "后台功能", "category": "backend", "days": 5, "complexity": 1.1},
+    {"name": "权限与账号", "description": "登录与权限", "category": "backend", "days": 3, "complexity": 1.0},
+]
 
 
 class PricingTests(TestCase):
@@ -37,33 +58,34 @@ class PricingTests(TestCase):
         self.assertLess(result.suggested_price, result.amount_max)
         total = sum(item["amount"] for item in result.breakdown)
         self.assertLessEqual(abs(total - result.suggested_price), 2)
-        self.assertEqual(len(result.breakdown), 5)
+        self.assertGreaterEqual(len(result.breakdown), 4)
+        self.assertTrue(any(item.get("kind") == "module" for item in result.breakdown))
+        self.assertTrue(any(item.get("kind") == "overhead" for item in result.breakdown))
 
-    def test_more_complex_costs_more(self):
-        simple = estimate(
-            title="简单脚本",
-            description="写一个定时备份脚本。" * 3,
-            deliverables=["脚本"],
-            deadline_days=30,
-            category="automation",
+    def test_more_module_days_costs_more(self):
+        catalog = catalog_map()
+        small = price_modules(
+            modules=[{"name": "核心功能", "category": "backend", "days": 3, "complexity": 1.0}],
+            catalog=catalog,
+            decomposition_source="llm",
         )
-        complex_ = estimate(
-            title="复杂自动化",
-            description=(
-                "需要自动化脚本，支持权限、支付、第三方对接、多端、实时、高并发、迁移、国际化、审批。"
-                * 6
-            ),
-            deliverables=["脚本", "后台", "监控", "文档", "部署"],
-            deadline_days=10,
-            category="automation",
+        large = price_modules(
+            modules=[{"name": "核心功能", "category": "backend", "days": 8, "complexity": 1.2}],
+            catalog=catalog,
+            decomposition_source="llm",
         )
-        self.assertGreater(complex_.suggested_price, simple.suggested_price)
-        self.assertGreater(complex_.complexity, simple.complexity)
+        self.assertGreater(large.suggested_price, small.suggested_price)
+        self.assertGreater(large.total_days, small.total_days)
+        self.assertEqual(sum(item["amount"] for item in large.breakdown), large.suggested_price)
 
 
 class ApiTests(TestCase):
     def setUp(self):
         self.client = Client()
+        self.llm_patcher = patch("orders.llm.decompose")
+        self.mock_llm = self.llm_patcher.start()
+        self.mock_llm.return_value = llm_result(BASE_MODULES)
+        self.addCleanup(self.llm_patcher.stop)
 
     def create_requirement(self, **overrides):
         payload = {
@@ -87,7 +109,7 @@ class ApiTests(TestCase):
     def test_health_and_meta(self):
         response = self.client.get("/api/order/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["pricing_version"], "market-2026.1")
+        self.assertEqual(response.json()["pricing_version"], "market-2026.2")
         meta = self.client.get("/api/order/meta").json()
         self.assertTrue(any(item["key"] == "web_fullstack" for item in meta["categories"]))
 
@@ -105,6 +127,18 @@ class ApiTests(TestCase):
         self.assertEqual(Requirement.objects.count(), 1)
         self.assertEqual(RequirementRound.objects.count(), 1)
         self.assertEqual(Quote.objects.count(), 1)
+        self.assertEqual(quote["decomposition_source"], "llm")
+        self.assertEqual(quote["module_count"], 3)
+        self.assertEqual(len(quote["modules"]), 3)
+
+    def test_fallback_when_llm_fails(self):
+        self.mock_llm.return_value = {"ok": False, "error": "timeout"}
+        response = self.create_requirement()
+        self.assertEqual(response.status_code, 201)
+        quote = response.json()["latest_quote"]
+        self.assertEqual(quote["decomposition_source"], "fallback")
+        self.assertGreaterEqual(quote["module_count"], 1)
+        self.assertTrue(any(item.get("kind") == "module" for item in quote["breakdown"]))
 
     def test_patch_does_not_create_new_quote(self):
         created = self.create_requirement().json()
@@ -120,6 +154,10 @@ class ApiTests(TestCase):
         self.assertEqual(Quote.objects.count(), 1)
 
     def test_second_round_reprices_with_comparison(self):
+        second_modules = BASE_MODULES + [
+            {"name": "支付与订单", "description": "支付、订单与对账", "category": "backend", "days": 4, "complexity": 1.2}
+        ]
+        self.mock_llm.side_effect = [llm_result(BASE_MODULES), llm_result(second_modules)]
         created = self.create_requirement().json()
         public_id = created["public_id"]
         first_price = created["latest_quote"]["suggested_price"]
@@ -146,7 +184,7 @@ class ApiTests(TestCase):
         self.assertNotEqual(data["quote"]["suggested_price"], first_price)
         self.assertTrue(data["comparison"]["reasons"])
         self.assertTrue(
-            any("交付物" in reason for reason in data["comparison"]["reasons"]),
+            any("新增模块" in reason for reason in data["comparison"]["reasons"]),
             data["comparison"]["reasons"],
         )
 
