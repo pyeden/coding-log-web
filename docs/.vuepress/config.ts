@@ -158,6 +158,8 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: '热管理', link: '/note/thermal/' },
               { text: '整车安全与法规', link: '/note/vehicle-safety/' },
               { text: '汽车安全标准ISO26262', link: '/note/iso26262/' },
+              { text: '智能辅助驾驶国标GB44721-2024', link: '/note/gb44721-2024/' },
+              { text: 'L3/L4驾驶国标GB44721-2026', link: '/note/gb44721-2026/' },
               { text: '汽车软件与AUTOSAR', link: '/note/autosar/' },
               { text: 'ASPICE软件开发流程', link: '/note/aspice/' },
               { text: '智能座舱', link: '/note/cockpit/' },
