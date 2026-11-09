@@ -74,6 +74,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
               { text: 'n8n架构学习笔记', link: '/note/n8n-arch/' },
               { text: 'LangGraph学习笔记', link: '/note/langgraph/' },
               { text: 'LangChain学习笔记', link: '/note/langchain/' },
+              { text: 'AI大模型应用开发总结', link: '/note/ai-app-dev-summary/' },
             ],
           },
           {
