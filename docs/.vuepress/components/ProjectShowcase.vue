@@ -52,6 +52,19 @@
           <div class="ps-card-foot"><span>15 章构建教程 · 子路径上线</span><b>进入项目 <em>→</em></b></div>
         </a>
 
+        <a class="ps-card ps-card-order" href="/projects/order/">
+          <div class="ps-card-head">
+            <span class="ps-icon ps-icon-cyan" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h10A1.5 1.5 0 0 1 18.5 5v14A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5Z" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </span>
+            <span class="ps-status ps-live"><i></i>LIVE</span>
+          </div>
+          <h2>接单管理</h2>
+          <p>提交需求后按市场人日价自动报价，支持多轮范围变更重新报价；Django admin + ElementUI 管理需求、报价与价目。</p>
+          <div class="ps-tags"><span>Django</span><span>Market Pricing</span><span>Admin</span></div>
+          <div class="ps-card-foot"><span>自动报价 · 多轮改价</span><b>进入项目 <em>→</em></b></div>
+        </a>
+
         <a class="ps-card" href="/ai/">
           <div class="ps-card-head">
             <span class="ps-icon ps-icon-violet" aria-hidden="true">

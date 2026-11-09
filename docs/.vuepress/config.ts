@@ -58,6 +58,7 @@ export default defineConfig4CustomTheme<VdoingThemeConfig>({
           { text: '项目总览', link: '/projects/' },
           { text: '智能旅行助手', link: '/projects/travel/' },
           { text: '简历维护助手', link: '/projects/resume/' },
+          { text: '接单管理', link: '/projects/order/' },
           { text: 'PanguVerse', link: 'https://seres-ai.com/panguverse/', target: '_blank' },
         ],
       },
