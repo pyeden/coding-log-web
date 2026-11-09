@@ -1,0 +1,113 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}接单看板 | 接单管理后台{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'vendor/element-ui/index.css' %}">
+<style>
+  .order-dashboard { padding: 4px 0 24px; }
+  .od-hero { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin: 0 0 16px; }
+  .od-hero h2 { margin: 0; font-size: 20px; color: #1f2937; }
+  .od-hero p { margin: 0; color: #6b7280; font-size: 13px; }
+  .od-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .od-stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+  .od-stat span { display: block; color: #6b7280; font-size: 12px; margin-bottom: 6px; }
+  .od-stat b { font-size: 24px; color: #111827; font-weight: 700; }
+  .od-stat b small { font-size: 12px; color: #6b7280; font-weight: 500; margin-left: 2px; }
+  .od-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px 8px; margin-bottom: 16px; }
+  .od-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .od-panel-head h3 { margin: 0; font-size: 15px; color: #111827; }
+  .od-panel-head a { color: #2563eb; font-size: 12px; text-decoration: none; }
+  .el-table { font-size: 13px; }
+  .el-table th.el-table__cell { background: #f9fafb; color: #374151; }
+  .od-price { font-variant-numeric: tabular-nums; font-weight: 600; color: #111827; }
+  .od-delta { color: #059669; font-size: 12px; }
+  @media (max-width: 900px) {
+    .od-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="order-dashboard" class="order-dashboard" v-cloak>
+  <div class="od-hero">
+    <h2>接单看板</h2>
+    <p>需求自动报价 · 市场价基线 {{ stats.pricing_version|default:"market-2026.1" }}</p>
+  </div>
+
+  <div class="od-stats">
+    <div class="od-stat"><span>需求总数</span><b>{{ stats.requirements }}<small>条</small></b></div>
+    <div class="od-stat"><span>待确认报价</span><b>{{ stats.quoted }}<small>条</small></b></div>
+    <div class="od-stat"><span>进行中 / 已确认</span><b>{{ stats.active }}<small>条</small></b></div>
+    <div class="od-stat"><span>本月报价合计</span><b>{{ stats.month_amount|floatformat:0 }}<small>元</small></b></div>
+  </div>
+
+  <div class="od-panel">
+    <div class="od-panel-head">
+      <h3>最近需求</h3>
+      <a href="{% url 'admin:orders_requirement_changelist' %}">查看全部 →</a>
+    </div>
+    <el-table :data="requirements" stripe style="width: 100%">
+      <el-table-column prop="title" label="项目" min-width="180"></el-table-column>
+      <el-table-column prop="client_name" label="客户" width="120"></el-table-column>
+      <el-table-column prop="category" label="类别" width="120"></el-table-column>
+      <el-table-column prop="status" label="状态" width="90"></el-table-column>
+      <el-table-column prop="round" label="轮次" width="70" align="center"></el-table-column>
+      <el-table-column label="最新建议价" width="130" align="right">
+        <template slot-scope="scope">
+          <span class="od-price" v-text="scope.row.price_text"></span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="updated_at" label="更新" width="100"></el-table-column>
+      <el-table-column label="操作" width="80" align="center">
+        <template slot-scope="scope">
+          <el-link type="primary" :href="scope.row.admin_url" :underline="false">编辑</el-link>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+
+  <div class="od-panel">
+    <div class="od-panel-head">
+      <h3>最近报价</h3>
+      <a href="{% url 'admin:orders_quote_changelist' %}">查看全部 →</a>
+    </div>
+    <el-table :data="quotes" stripe style="width: 100%">
+      <el-table-column prop="quote_no" label="报价单号" width="150"></el-table-column>
+      <el-table-column prop="title" label="需求" min-width="170"></el-table-column>
+      <el-table-column prop="round" label="轮次" width="70" align="center"></el-table-column>
+      <el-table-column label="建议价" width="120" align="right">
+        <template slot-scope="scope"><span class="od-price" v-text="scope.row.price_text"></span></template>
+      </el-table-column>
+      <el-table-column label="区间" width="190" align="right">
+        <template slot-scope="scope"><span v-text="scope.row.range_text"></span></template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" width="90"></el-table-column>
+      <el-table-column prop="generated_at" label="生成" width="100"></el-table-column>
+      <el-table-column label="操作" width="80" align="center">
+        <template slot-scope="scope">
+          <el-link type="primary" :href="scope.row.admin_url" :underline="false">查看</el-link>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</div>
+
+{{ dashboard_data|json_script:"order-dashboard-data" }}
+<script src="{% static 'vendor/vue.min.js' %}"></script>
+<script src="{% static 'vendor/element-ui/index.js' %}"></script>
+<script>
+  (function () {
+    var payload = JSON.parse(document.getElementById("order-dashboard-data").textContent || "{}");
+    new Vue({
+      el: "#order-dashboard",
+      data: {
+        requirements: payload.requirements || [],
+        quotes: payload.quotes || []
+      }
+    });
+  })();
+</script>
+{% endblock %}

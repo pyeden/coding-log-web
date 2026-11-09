@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | 接单管理后台{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">接单管理后台</a></h1>
+{% endblock %}
+
+{% block nav-global %}
+<a href="{% url 'admin:order_dashboard' %}" style="color:#fff;font-weight:600;margin-left:16px;">接单看板</a>
+<a href="{% url 'admin:orders_requirement_changelist' %}" style="color:#fff;margin-left:12px;">需求管理</a>
+<a href="{% url 'admin:orders_quote_changelist' %}" style="color:#fff;margin-left:12px;">报价管理</a>
+{% endblock %}
